@@ -1,6 +1,6 @@
 # ACTP architecture, IA and delivery gates
 
-As of 2026-10-19, the repository contains the shared CSS/JS structure, a homepage shell, the floating responsive navigation (collapses to a native menu button below 1024px), five interim secondary pages (`about`, `services`, `nsx-adviser`, `insights`, `contact`) that hold only an H1 and an NSX profile link until their content tickets land, stdlib tests and CI; the page copy below is the approved target, not a claim of implementation. Canonical request is `docs/project-brief.md`; installed implementer `dev-dexter` resolves brief's `dex-dexter`, and no shooshy profile exists.
+As of 2026-10-19, the repository contains the shared CSS/JS structure, a homepage shell, the floating responsive navigation (collapses to a native menu button below 1024px), five secondary pages (`about`, `services`, `nsx-adviser`, `insights`, `contact`) built to the copy below (form delivery is reserved for ACTP-016), stdlib tests and CI; the copy below is the approved content boundary. Canonical request is `docs/project-brief.md`; installed implementer `dev-dexter` resolves brief's `dex-dexter`, and no shooshy profile exists.
 
 ## Information architecture
 

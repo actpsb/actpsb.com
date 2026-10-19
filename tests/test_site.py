@@ -592,6 +592,104 @@ class ContactFooterTests(unittest.TestCase):
         self.assertIn("no enquiry form yet", html.lower())
 
 
+class SecondaryPageTests(unittest.TestCase):
+    NSX = "https://www.nsx.com.au/listing/adviser-profile/130/"
+    H1 = {
+        "about.html": "About ACTP", "services.html": "Services",
+        "nsx-adviser.html": "NSX Nominated Adviser", "insights.html": "Insights", "contact.html": "Contact",
+    }
+
+    def read(self, name):
+        return (ROOT / name).read_text(encoding="utf-8")
+
+    def test_unique_titles_h1s_descriptions_and_shared_shell(self):
+        titles, descs = set(), set()
+        for name, h1 in self.H1.items():
+            html = self.read(name)
+            self.assertEqual(re.findall(r"<h1[^>]*>(.*?)</h1>", html, re.S), [h1], name)
+            titles.add(re.search(r"<title>(.*?)</title>", html).group(1))
+            descs.add(re.search(r'name="description" content="([^"]+)"', html).group(1))
+            for sheet in STYLESHEETS:
+                self.assertIn(f'href="{sheet}"', html, name)
+            self.assertIn('src="assets/js/main.js" defer', html, name)
+            self.assertNotIn("being prepared", html, name)
+            ids = re.findall(r'id="([^"]+)"', html)
+            self.assertEqual(len(ids), len(set(ids)), name)
+            heads = [int(n) for n in re.findall(r"<h([1-6])[ >]", html)]
+            self.assertEqual(heads[0], 1, name)
+            for a, b in zip(heads, heads[1:]):
+                self.assertLessEqual(b - a, 1, name)
+        self.assertEqual(len(titles), 5)
+        self.assertEqual(len(descs), 5)
+
+    def test_sections_labelled_and_links_resolve(self):
+        for name in self.H1:
+            html = self.read(name)
+            for label in re.findall(r'<section[^>]*aria-labelledby="([^"]+)"', html):
+                self.assertIn(f'id="{label}"', html, name)
+            for href in re.findall(r'<a [^>]*href="([^"]+)"', html):
+                self.assertNotEqual(href, "#", name)
+                if href.startswith("#"):
+                    self.assertIn(f'id="{href[1:]}"', html, (name, href))
+                elif not re.match(r"[a-z]+:", href):
+                    self.assertTrue((ROOT / href.split("#")[0]).is_file(), (name, href))
+            for tag in re.findall(r"<a [^>]*>", html):
+                if "nsx.com.au" in tag and 'href="https://' in tag:
+                    self.assertIn("noopener", tag, name)
+            for src in re.findall(r'(?:src|href)="(assets/[^"]+)"', html):
+                self.assertTrue((ROOT / src).is_file(), (name, src))
+
+    def test_sourced_attribution(self):
+        about = self.read("about.html")
+        self.assertIn("wholly owned subsidiary of Arris Holdings Berhad", about)
+        self.assertIn(self.NSX, about)
+        self.assertIn("https://www.arris.com.my/", about)
+        self.assertIn("pending confirmation by ACTP", about)
+        self.assertIn("39, Jalan Kenari 17C", about)
+        nsx = self.read("nsx-adviser.html")
+        for url in (self.NSX, "https://www.nsx.com.au/listing/adviser-list/",
+                    "https://www.nsx.com.au/regulation/companies/nominated-adviser/"):
+            self.assertIn(url, nsx)
+        self.assertIn("not a licence, certification or endorsement", nsx)
+        svc = self.read("services.html")
+        self.assertIn("pending confirmation by ACTP", svc)
+        self.assertIn("not offered or implied here", svc)
+        self.assertIn('href="nsx-adviser.html"', svc)
+        self.assertIn('href="contact.html"', svc)
+
+    def test_no_invented_claims(self):
+        for name in self.H1:
+            main = re.search(r"<main.*?</main>", self.read(name), re.S).group(0).lower()
+            self.assertNotRegex(main, r"testimonial|award|years of experience|since 19|since 20(?!22)|our clients|our team|guarantee[sd]? (?:admission|success|results)", name)
+            self.assertNotRegex(main, r"<form|message sent|thank you for", name)
+
+    def test_insights_genuine_empty_state(self):
+        main = re.search(r"<main.*?</main>", self.read("insights.html"), re.S).group(0)
+        self.assertIn("There are no published insights available yet.", main)
+        self.assertIn('role="status"', main)
+        for bad in ("<article", "<time", "Read more", "<img", "<li"):
+            self.assertNotIn(bad, main)
+
+    def test_contact_accessible_and_truthful(self):
+        html = self.read("contact.html")
+        main = re.search(r"<main.*?</main>", html, re.S).group(0)
+        self.assertIn("not a confirmed ACTP-owned mailbox", main)
+        self.assertIn("no enquiry form yet", main.lower())
+        self.assertIn('role="status"', main)
+        self.assertIn('href="mailto:contact@arris.com.my"', main)
+        self.assertRegex(main, r'href="tel:\+[0-9]+"')
+        self.assertIn(self.NSX, main)
+        self.assertNotIn("<form", html)
+        self.assertNotIn("<input", html)
+
+    def test_secondary_page_css(self):
+        css = all_css()
+        self.assertRegex(css, r"\.page-boundary\s*\{[^}]*background:\s*var\(--color-white\)")
+        self.assertIn(".contact-list a", css)
+        self.assertIn("min-height: 44px", css)
+        self.assertIn("minmax(0, 1fr)", css)
+
+
 class ServerTests(unittest.TestCase):
     def test_local_http_server(self):
         handler = partial(QuietHandler, directory=str(ROOT))

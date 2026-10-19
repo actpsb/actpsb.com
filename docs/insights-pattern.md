@@ -2,7 +2,7 @@
 
 ## Current state
 
-The homepage "Insights" section (`index.html`, `.insights`) shows a plain empty state: "There are no published insights available yet." `insights.html` is an interim page ("This page is being prepared.") with a link to the NSX profile. The homepage section holds no article cards, images, dates, categories, "Read more" links or promised publication schedule. Its links go to `nsx-adviser.html` and `insights.html`. The decorative linework is `aria-hidden`; the empty-state panel is a `role="status"` region.
+The homepage "Insights" section (`index.html`, `.insights`) shows a plain empty state: "There are no published insights available yet." `insights.html` shows the same empty state under its own H1, with links to `nsx-adviser.html` and `index.html`. The homepage section holds no article cards, images, dates, categories, "Read more" links or promised publication schedule. Its links go to `nsx-adviser.html` and `insights.html`. The decorative linework is `aria-hidden`; the empty-state panel is a `role="status"` region.
 
 ## Publishing rule
 

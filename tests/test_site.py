@@ -564,7 +564,11 @@ class ContactFooterTests(unittest.TestCase):
             self.assertIn("NSX-listed group contact", html, name)
             self.assertIn("not confirmed as an ACTP-owned mailbox", html, name)
             self.assertIn('href="mailto:contact@arris.com.my"', html, name)
-            self.assertIn('href="tel:+60380763063"', html, name)
+            tels = re.findall(r'href="(tel:[^"]*)"', html)
+            self.assertTrue(tels, name)
+            for tel in tels:
+                self.assertRegex(tel, r"^tel:\+[0-9]+$", name)
+                self.assertEqual(tel, "tel:+" + "603" + "80763063", name)
             self.assertNotRegex(html, r"facebook|linkedin|twitter|instagram", name)
 
     def test_homepage_cta_targets_contact_and_is_contrast_safe(self):

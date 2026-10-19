@@ -483,14 +483,19 @@ class ApproachSectionTests(unittest.TestCase):
 
     def test_no_js_visibility_and_reduced_motion(self):
         css = all_css()
-        self.assertRegex(css, r"\.js \.approach__step\.reveal\s*\{[^}]*opacity: 0")
-        self.assertNotRegex(css, r"(?m)^\.approach__step\s*\{[^}]*opacity: 0")
-        self.assertRegex(css, r"prefers-reduced-motion: reduce\)\s*\{[^}]*\.approach__step\.reveal[^}]*opacity: 1")
+        self.assertRegex(css, r"\.js \.reveal\s*\{[^}]*opacity: 0")
+        self.assertNotRegex(css, r"(?m)^\.(approach__step|reveal)\s*\{[^}]*opacity: 0")
+        self.assertRegex(css, r"prefers-reduced-motion: reduce\)\s*\{[^}]*\.js \.reveal[^}]*opacity: 1")
         self.assertRegex(css, r"min-width: 1024px\)\s*\{[^}]*\.approach__steps\s*\{[^}]*repeat\(4")
         js = (ROOT / "assets/js/main.js").read_text(encoding="utf-8")
         self.assertIn("prefers-reduced-motion", js)
         self.assertIn("IntersectionObserver", js)
         self.assertIn("setTimeout", js)
+        for sel in (".intro__item", ".services__panel", ".nsx__block", ".insights__empty", ".contact-cta__panel"):
+            self.assertIn(sel, js)
+        # Reveal class is applied by JS only, never authored in markup.
+        for page in ROOT.glob("*.html"):
+            self.assertNotIn("reveal", page.read_text(encoding="utf-8"), page.name)
 
 
 class InsightsSectionTests(unittest.TestCase):

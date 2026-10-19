@@ -47,26 +47,30 @@ document.documentElement.classList.add("js");
   render();
 })();
 
-// Scroll reveal for the approach steps. Steps stay visible unless observation starts successfully.
+// Scroll reveal. Targets stay visible unless observation starts successfully.
 (function () {
-  var steps = document.querySelectorAll(".approach__step");
-  if (!steps.length || !("IntersectionObserver" in window)) return;
+  var targets = document.querySelectorAll(
+    ".approach__step, .intro__item, .services__panel, .services__qualifier, .nsx__block, .insights__empty, .contact-cta__panel"
+  );
+  if (!targets.length || !("IntersectionObserver" in window)) return;
   if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  function showAll() {
+    targets.forEach(function (el) { el.classList.add("is-visible"); });
+  }
   try {
     var observer = new IntersectionObserver(function (entries) {
       entries.forEach(function (entry) {
-        if (entry.isIntersecting) {
+        // Reveal what is on screen and anything already scrolled past (e.g. after a hash jump).
+        if (entry.isIntersecting || entry.boundingClientRect.top < 0) {
           entry.target.classList.add("is-visible");
           observer.unobserve(entry.target);
         }
       });
-    }, { threshold: 0.15 });
-    steps.forEach(function (step) { step.classList.add("reveal"); observer.observe(step); });
+    }, { threshold: 0.12 });
+    targets.forEach(function (el) { el.classList.add("reveal"); observer.observe(el); });
     // Safety net: never leave content hidden if intersection events do not arrive.
-    window.setTimeout(function () {
-      steps.forEach(function (step) { step.classList.add("is-visible"); });
-    }, 3000);
+    window.setTimeout(showAll, 3000);
   } catch (e) {
-    steps.forEach(function (step) { step.classList.remove("reveal"); });
+    targets.forEach(function (el) { el.classList.remove("reveal"); });
   }
 })();

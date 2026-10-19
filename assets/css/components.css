@@ -440,18 +440,6 @@ html:not(.js) .site-header { position: static; }
   .approach__step::before { left: 0; top: calc(-1 * var(--space-4) - 9px); }
 }
 
-/* Scroll reveal applies only after main.js sets .js and observation starts; content is visible by default. */
-.js .approach__step.reveal { opacity: 0; transform: translateY(16px); }
-.js .approach__step.reveal.is-visible {
-  opacity: 1;
-  transform: none;
-  transition: opacity 600ms ease, transform 600ms ease;
-}
-@media (prefers-reduced-motion: reduce) {
-  .js .approach__step.reveal,
-  .js .approach__step.reveal.is-visible { opacity: 1; transform: none; transition: none; }
-}
-
 /* Insights: honest empty state. Stacked on mobile, two columns from 1024px. Visible without JS. */
 .insights__grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-6); align-items: center; }
 .insights__head { min-width: 0; max-width: var(--reading-max); }
@@ -510,3 +498,29 @@ html:not(.js) .site-header { position: static; }
 
 .contact-details { max-width: var(--reading-max); margin-top: var(--space-4); }
 .contact-details a { color: var(--color-forest); text-decoration: underline; text-underline-offset: 3px; overflow-wrap: anywhere; }
+
+/* Scroll reveal applies only after main.js sets .js and observation starts; content is visible by default.
+   Opacity and transform only, so no layout shift. */
+.js .reveal { opacity: 0; transform: translateY(16px); }
+.js .reveal.is-visible {
+  opacity: 1;
+  transform: none;
+  transition: opacity 600ms ease, transform 600ms ease, background-color var(--duration-hover);
+}
+.js .services__panel.reveal:nth-child(2).is-visible,
+.js .approach__step.reveal:nth-child(2).is-visible { transition-delay: 80ms, 80ms, 0s; }
+.js .approach__step.reveal:nth-child(3).is-visible { transition-delay: 160ms, 160ms, 0s; }
+.js .approach__step.reveal:nth-child(4).is-visible { transition-delay: 240ms, 240ms, 0s; }
+
+/* Hover polish: transform and colour only. */
+.button { transition: background-color var(--duration-hover), color var(--duration-hover), transform var(--duration-hover); }
+.button:hover { transform: translateY(-2px); }
+.button:active { transform: none; }
+.insights__empty, .nsx__block { transition: border-color var(--duration-hover); }
+.insights__empty:hover { border-color: var(--color-forest); }
+
+@media (prefers-reduced-motion: reduce) {
+  .js .reveal,
+  .js .reveal.is-visible { opacity: 1; transform: none; transition: none; }
+  .button:hover { transform: none; }
+}

@@ -451,3 +451,32 @@ html:not(.js) .site-header { position: static; }
   .js .approach__step.reveal,
   .js .approach__step.reveal.is-visible { opacity: 1; transform: none; transition: none; }
 }
+
+/* Insights: honest empty state. Stacked on mobile, two columns from 1024px. Visible without JS. */
+.insights__grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-6); align-items: center; }
+.insights__head { min-width: 0; max-width: var(--reading-max); }
+.insights__lead { font-size: var(--text-lead); line-height: 1.6; font-weight: 600; color: var(--color-forest); }
+.insights__note { max-width: var(--reading-max); }
+.insights__empty {
+  min-width: 0;
+  padding: var(--space-4);
+  background: var(--color-white);
+  border: 2px dashed var(--color-line);
+  border-radius: 6px;
+  overflow-wrap: anywhere;
+}
+.insights__empty p:last-child { margin-bottom: 0; }
+.insights__art { max-width: 320px; margin-bottom: var(--space-3); }
+.insights__art svg { display: block; width: 100%; height: auto; }
+.insights__empty-title {
+  margin: 0 0 var(--space-1);
+  font-family: var(--font-heading);
+  font-size: var(--text-h3);
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--color-forest);
+}
+@media (min-width: 1024px) {
+  .insights__grid { grid-template-columns: minmax(0, 6fr) minmax(0, 5fr); gap: var(--space-10); }
+  .insights__empty { padding: var(--space-6); }
+}

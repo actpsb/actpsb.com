@@ -493,6 +493,42 @@ class ApproachSectionTests(unittest.TestCase):
         self.assertIn("setTimeout", js)
 
 
+class InsightsSectionTests(unittest.TestCase):
+    def section(self):
+        html = (ROOT / "index.html").read_text(encoding="utf-8")
+        m = re.search(r'<section class="section insights".*?</section>', html, re.S)
+        self.assertTrue(m)
+        return m.group(0)
+
+    def test_genuine_empty_state_without_fabricated_content(self):
+        sec = self.section()
+        self.assertIn("There are no published insights available yet.", sec)
+        self.assertEqual(len(re.findall(r"<h2", sec)), 1)
+        for tag in ("<article", "<time", "<img", "Read more"):
+            self.assertNotIn(tag, sec)
+        self.assertNotRegex(re.sub(r"<[^>]+>", " ", sec), r"\b(19|20)\d\d\b")
+        self.assertNotIn('href="#"', sec)
+
+    def test_links_resolve_to_existing_pages(self):
+        for href in re.findall(r'href="([^"]+)"', self.section()):
+            self.assertFalse(href.startswith("http") or href.startswith("#"), href)
+            self.assertTrue((ROOT / href).exists(), href)
+
+    def test_decorative_art_hidden_and_status_region(self):
+        sec = self.section()
+        self.assertIn('class="insights__art" aria-hidden="true"', sec)
+        self.assertIn('role="status"', sec)
+
+    def test_responsive_css_and_pattern_documented(self):
+        css = all_css()
+        self.assertRegex(css, r"\.insights__grid\s*\{[^}]*grid-template-columns:\s*minmax\(0, 1fr\)")
+        self.assertRegex(css, r"min-width: 1024px\)\s*\{[^}]*\.insights__grid\s*\{[^}]*6fr[^}]*5fr")
+        self.assertNotRegex(css, r"\.insights[^{]*\{[^}]*opacity: 0")
+        doc = (ROOT / "docs/insights-pattern.md").read_text(encoding="utf-8")
+        for field in ("Category", "Featured image", "Publication date", "Title", "Short description", "Read-more link"):
+            self.assertIn(field, doc)
+
+
 class RepoHygieneTests(unittest.TestCase):
     def test_gitignore_covers_python_caches(self):
         text = (ROOT / ".gitignore").read_text(encoding="utf-8")

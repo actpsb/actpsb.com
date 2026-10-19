@@ -11,8 +11,8 @@ declare(strict_types=1);
 // cPanel add-on domains use /home/USER/public_html/DOMAIN, where the parent is itself web-served:
 // in that case the backend belongs in the account home, two levels up.
 $home = basename(dirname(__DIR__)) === 'public_html' ? dirname(__DIR__, 2) : dirname(__DIR__);
-$backend = getenv('ACTP_BACKEND_DIR') ?: $home . '/actp-backend';
-$private = getenv('ACTP_PRIVATE_DIR') ?: $home . '/actp-private';
+$backend = getenv('ACTP_BACKEND_DIR') ?: $home . '/actpsb-backend';
+$private = getenv('ACTP_PRIVATE_DIR') ?: $home . '/actpsb-private';
 
 header_remove('X-Powered-By');
 $autoload = $backend . '/vendor/autoload.php';

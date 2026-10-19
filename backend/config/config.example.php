@@ -1,7 +1,7 @@
 <?php
 /*
  * NON-SECRET PLACEHOLDER TEMPLATE. Copy to <private dir>/config.php OUTSIDE public_html
- * (for example /home/CPANELUSER/actp-private/config.php), chmod 600, then replace every
+ * (for example /home/arriscom/actpsb-private/config.php), chmod 600, then replace every
  * value. Never commit the real file. The password placeholder fails validation on purpose, so the
  * form stays unavailable until real values are set.
  *
@@ -29,6 +29,6 @@ return [
     'trusted_proxies' => [],
 
     // Optional. Rate limit state and event log directory (default <private dir>/var). Keep outside public_html.
-    // 'state_dir' => '/home/CPANELUSER/actp-private/var',
+    // 'state_dir' => '/home/arriscom/actpsb-private/var',
     // 'rate_ip_max' => 5, 'rate_ip_window' => 600, 'rate_global_max' => 100, 'rate_global_window' => 3600,
 ];

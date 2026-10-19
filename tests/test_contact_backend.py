@@ -448,6 +448,51 @@ class RateLimitTests(BackendBase):
         self.assertEqual(codes.count(429), 5, codes)
 
 
+@unittest.skipUnless(PHP and VENDOR.is_file(), SKIP)
+class DeploymentLayoutTests(unittest.TestCase):
+    def test_default_owner_paths_without_env_overrides(self):
+        tmp = Path(tempfile.mkdtemp(prefix="actp-layout-"))
+        sb = Sandbox(tmp)
+        proc = None
+        try:
+            home = tmp / "arriscom"
+            docroot = home / "public_html" / "actpsb.com"
+            docroot.mkdir(parents=True)
+            (home / "actpsb-private").mkdir()
+            shutil.copy(ROOT / "contact-submit.php", docroot)
+            shutil.copy(ROOT / "contact.html", docroot)
+            (home / "actpsb-backend").symlink_to(ROOT / "backend")
+            port = free_port()
+            (home / "actpsb-private" / "config.php").write_text(
+                "<?php return ['smtp_host'=>'localhost','smtp_port'=>%d,'smtp_secure'=>'tls','smtp_user'=>'%s',"
+                "'smtp_pass'=>'%s','smtp_ca_file'=>'%s','mail_from'=>'mailbox@sandbox.test',"
+                "'mail_to'=>'inbox@sandbox.test','allowed_origins'=>['http://127.0.0.1:%d']];"
+                % (sb.port, sb.user, sb.password, sb.crt, port))
+            env = {k: v for k, v in os.environ.items() if not k.startswith("ACTP_")}
+            proc = subprocess.Popen([PHP, "-S", f"127.0.0.1:{port}", "-t", str(docroot)], env=env,
+                                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, cwd=str(docroot))
+            for _ in range(200):
+                try:
+                    socket.create_connection(("127.0.0.1", port), timeout=0.2).close()
+                    break
+                except OSError:
+                    time.sleep(0.05)
+            req = urllib.request.Request(
+                f"http://127.0.0.1:{port}/contact-submit.php", data=urllib.parse.urlencode(GOOD).encode(),
+                headers={"Origin": f"http://127.0.0.1:{port}", "Accept": "application/json",
+                         "Content-Type": "application/x-www-form-urlencoded"}, method="POST")
+            with OPENER.open(req, timeout=30) as r:
+                self.assertEqual(json.loads(r.read())["status"], "accepted")
+            self.assertEqual(len(sb.messages), 1)
+            self.assertTrue((home / "actpsb-private" / "var").is_dir())
+        finally:
+            if proc:
+                proc.terminate()
+                proc.wait(5)
+            sb.close()
+            shutil.rmtree(tmp, ignore_errors=True)
+
+
 class PublicSurfaceTests(unittest.TestCase):
     def test_no_secrets_or_private_files_tracked(self):
         try:

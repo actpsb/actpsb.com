@@ -35,7 +35,8 @@ Responses: 200 accepted by SMTP; 422 validation errors; 429 rate limited (with `
 - Username `contact@actpsb.com`; the same mailbox is both From and the enquiry recipient; the visitor address is Reply-To only
 - The owner sets the mailbox password directly on the server; it is never in chat, git or this repository
 - Domain exists in cPanel; its document root is shown as `/public_html/actpsb.com`
-- Still unconfirmed: absolute home path, PHP version, exact live origin (`https://actpsb.com` is the template value; confirm www handling)
+- PHP: owner reports actpsb.com is set to PHP 8.3 (ea-php83) in cPanel, replacing an inherited 7.2. This is owner-reported and not independently verified; confirm during installation (step 4)
+- Still unconfirmed: absolute home path, exact live origin (`https://actpsb.com` is the template value; confirm www handling)
 
 ## Server layout (cPanel)
 
@@ -58,7 +59,7 @@ Rules the code enforces: TLS is always on with certificate and host-name verific
 1. On a workstation: `cd backend && composer install --no-dev --optimize-autoloader` (PHP 8.1 or newer, `openssl` and `mbstring` extensions). Review `git status`: `vendor/` is ignored and must not be committed.
 2. Upload `backend/{src,vendor,composer.json,composer.lock,licenses}` to `~/actp-backend/` and the site files plus `contact-submit.php` to `public_html`.
 3. Create `~/actp-private/config.php` from the template with real values, `chmod 600`. Do not paste credentials into chat, tickets or git.
-4. In cPanel, select PHP 8.1+ and confirm `openssl` and `mbstring` are enabled.
+4. Target PHP 8.3 (ea-php83). Verify the web runtime, not just the CLI: confirm the domain runs 8.3 (the code requires 8.1+, so the old 7.2 would fail), and that `openssl` and `mbstring` are enabled and outbound TLS to `mail.actpsb.com:465` works. Run `composer install` with the same PHP major version.
 5. Run the authorised end-to-end test with a mailbox the owner controls, then read the message in that inbox. Record the result in the task, not in this file.
 
 ## Deployment configuration checklist (open items)
@@ -68,7 +69,7 @@ These are not confirmed and are not invented here:
 - [ ] cPanel URL and account; PHP version available; whether SSH/Composer exists on the host (otherwise install on a workstation and upload `vendor/`)
 - [ ] Confirm live origin (scheme and host, www or not) for `allowed_origins`; also unlocks canonical URLs and sitemap (see `seo.md`)
 - [x] Mailbox, SMTP host/port/TLS and recipient: confirmed by owner (see above); password to be set by the owner on the server
-- [ ] Absolute home path and PHP version
+- [ ] Absolute home path; verify PHP 8.3 and extensions on the live runtime (owner-reported only)
 - [ ] DNS authentication for the sending domain (SPF, DKIM, DMARC), owner action
 - [ ] Privacy notice wording and retention statement from ACTP. None is published; do not add placeholder claims.
 - [ ] Whether a proxy or CDN sits in front of PHP (sets `trusted_proxies`)

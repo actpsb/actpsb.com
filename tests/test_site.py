@@ -167,7 +167,7 @@ class StructureTests(unittest.TestCase):
             self.assertTrue((ROOT / s).is_file(), s)
 
     def test_script_deferred_and_local(self):
-        scripts = [a for t, a in parse().tags if t == "script"]
+        scripts = [a for t, a in parse().tags if t == "script" and a.get("type") != "application/ld+json"]
         self.assertEqual([s["src"] for s in scripts], SCRIPTS)
         for s in scripts:
             self.assertIn("defer", s)

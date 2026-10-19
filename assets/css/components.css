@@ -480,3 +480,33 @@ html:not(.js) .site-header { position: static; }
   .insights__grid { grid-template-columns: minmax(0, 6fr) minmax(0, 5fr); gap: var(--space-10); }
   .insights__empty { padding: var(--space-6); }
 }
+
+/* Homepage contact CTA: teal field carries an opaque panel so text never sits on teal. */
+.contact-cta { background: var(--color-teal); }
+.contact-cta :focus-visible { outline-color: var(--color-forest-dark); }
+.contact-cta__panel {
+  max-width: 760px;
+  margin-inline: auto;
+  padding: var(--space-4) var(--space-3);
+  background: var(--color-white);
+  color: var(--color-text);
+  border-radius: var(--space-1);
+}
+.contact-cta__panel h2 { color: var(--color-forest); }
+.contact-cta__lead { max-width: var(--reading-max); }
+.button--cta { background: var(--color-forest-dark); border-color: var(--color-forest-dark); color: var(--color-white); }
+.button--cta:hover { background: var(--color-forest); border-color: var(--color-forest); }
+@media (min-width: 768px) { .contact-cta__panel { padding: var(--space-8); } }
+
+/* Footer layout: identity, six-page navigation, NSX-listed group contact. */
+.site-footer__grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-4); }
+.site-footer__name { font-weight: 700; font-size: var(--text-h3); }
+.site-footer ul { list-style: none; margin: 0; padding: 0; }
+.site-footer li a { display: inline-flex; align-items: center; min-height: var(--tap-min); text-decoration: underline; text-underline-offset: 3px; }
+.site-footer a { overflow-wrap: anywhere; text-decoration: underline; text-underline-offset: 3px; }
+.site-footer__contact a { display: inline-block; padding-block: 10px; }
+.site-footer__label { font-weight: 600; }
+@media (min-width: 1024px) { .site-footer__grid { grid-template-columns: minmax(0, 5fr) minmax(0, 3fr) minmax(0, 4fr); gap: var(--space-8); } }
+
+.contact-details { max-width: var(--reading-max); margin-top: var(--space-4); }
+.contact-details a { color: var(--color-forest); text-decoration: underline; text-underline-offset: 3px; overflow-wrap: anywhere; }

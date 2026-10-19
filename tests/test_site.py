@@ -552,6 +552,37 @@ class RepoHygieneTests(unittest.TestCase):
         self.assertIn("python -m unittest discover -s tests -v", ci)
 
 
+class ContactFooterTests(unittest.TestCase):
+    def read(self, name):
+        return (ROOT / name).read_text(encoding="utf-8")
+
+    def test_footer_on_every_page_has_six_links_and_labelled_contact(self):
+        for name, _ in PAGES:
+            html = self.read(name)
+            nav = re.search(r'<nav class="site-footer__nav".*?</nav>', html, re.S).group(0)
+            self.assertEqual(re.findall(r'href="([^"]+)"', nav), [p for p, _ in PAGES], name)
+            self.assertIn("NSX-listed group contact", html, name)
+            self.assertIn("not confirmed as an ACTP-owned mailbox", html, name)
+            self.assertIn('href="mailto:contact@arris.com.my"', html, name)
+            self.assertIn('href="tel:+60380763063"', html, name)
+            self.assertNotRegex(html, r"facebook|linkedin|twitter|instagram", name)
+
+    def test_homepage_cta_targets_contact_and_is_contrast_safe(self):
+        html = self.read("index.html")
+        sec = re.search(r'<section class="section contact-cta".*?</section>', html, re.S).group(0)
+        self.assertIn('<a class="button button--cta" href="contact.html">Get in Touch</a>', sec)
+        css = all_css()
+        self.assertRegex(css, r"\.contact-cta__panel\s*\{[^}]*background:\s*var\(--color-white\)")
+        self.assertRegex(css, r"\.button--cta\s*\{[^}]*background:\s*var\(--color-forest-dark\)[^}]*color:\s*var\(--color-white\)")
+        self.assertRegex(css, r"\.site-footer\s*\{[^}]*background:\s*var\(--color-forest-dark\)")
+
+    def test_no_form_or_fake_success(self):
+        html = self.read("contact.html")
+        self.assertNotIn("<form", html)
+        self.assertNotRegex(html.lower(), r"message sent|thank you for|successfully")
+        self.assertIn("no enquiry form yet", html.lower())
+
+
 class ServerTests(unittest.TestCase):
     def test_local_http_server(self):
         handler = partial(QuietHandler, directory=str(ROOT))

@@ -348,3 +348,42 @@ html:not(.js) .site-header { position: static; }
   .services__head { position: sticky; top: 112px; }
   .services__qualifier { grid-column: 2 / -1; margin-left: var(--space-8); }
 }
+
+/* NSX explainer: restrained typographic section on the light canvas, reading column beside a ruled ledger. */
+.nsx__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-6);
+}
+.nsx__head, .nsx__body { min-width: 0; }
+.nsx__lead { max-width: var(--reading-max); font-size: var(--text-lead); line-height: 1.6; }
+.nsx a:not(.button) { color: var(--color-forest); text-decoration: underline; text-underline-offset: 3px; overflow-wrap: anywhere; }
+.nsx a:not(.button):hover { color: var(--color-forest-dark); text-decoration-thickness: 3px; }
+.nsx__block {
+  padding-block: var(--space-3);
+  border-top: 3px solid var(--color-forest);
+}
+.nsx__block + .nsx__block { border-top-width: 1px; }
+.nsx__block h3 { margin-bottom: var(--space-1); }
+.nsx__block p { max-width: var(--reading-max); }
+.nsx__list {
+  max-width: var(--reading-max);
+  margin: 0 0 var(--space-2);
+  padding-left: var(--space-4);
+}
+.nsx__list li { margin-bottom: var(--space-1); padding-left: var(--space-1); }
+.nsx__boundary {
+  max-width: var(--reading-max);
+  margin-block: var(--space-3) 0;
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-soft);
+  border-left: 4px solid var(--color-teal);
+}
+
+@media (min-width: 768px) {
+  .nsx__grid { gap: var(--space-8); }
+}
+@media (min-width: 1024px) {
+  .nsx__grid { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: var(--space-10); align-items: start; }
+  .nsx__head { position: sticky; top: 112px; }
+}

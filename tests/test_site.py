@@ -405,6 +405,53 @@ class ServicesTests(unittest.TestCase):
         self.assertIn(".services__panel:hover", css)
         self.assertRegex(css, r"\.button--light\s*\{[^}]*color:\s*var\(--color-forest-dark\)")
 
+class NsxSectionTests(unittest.TestCase):
+    def section(self):
+        html = (ROOT / "index.html").read_text(encoding="utf-8")
+        m = re.search(r'<section class="section nsx".*?</section>', html, re.S)
+        self.assertTrue(m)
+        return m.group(0)
+
+    def text(self):
+        return re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", self.section()))
+
+    def test_heading_structure_and_ctas(self):
+        sec = self.section()
+        self.assertEqual(sec.count("<h2"), 1)
+        self.assertNotIn("<h1", sec)
+        self.assertIn('aria-labelledby="nsx-title"', sec)
+        self.assertIn('href="https://www.nsx.com.au/listing/adviser-profile/130/" rel="noopener">View the NSX listing', sec)
+        self.assertIn('href="nsx-adviser.html">Learn about the adviser role</a>', sec)
+
+    def test_status_attributed_to_nsx_list_and_profile(self):
+        sec = self.section()
+        self.assertIn('href="https://www.nsx.com.au/listing/adviser-list/"', sec)
+        self.assertIn('href="https://www.nsx.com.au/listing/adviser-profile/130/"', sec)
+        self.assertIn("appears on NSX's registered Nominated Advisers list as an International adviser, a member since 2022", self.text())
+
+    def test_generic_role_per_nsx_explainer(self):
+        sec = self.section()
+        self.assertIn('href="https://www.nsx.com.au/regulation/companies/nominated-adviser/"', sec)
+        text = self.text()
+        for phrase in ("Admission procedures", "Directors' obligations", "NSX Rules", "NSX describes nominated advisers"):
+            self.assertIn(phrase, text)
+
+    def test_no_guarantee_or_false_credential(self):
+        text = self.text()
+        self.assertIn("not a licence, certification or endorsement", text)
+        self.assertIn("does not promise that any issuer will be admitted", text)
+        for banned in ("licensed by", "regulated by", "accredited", "approved by nsx", "we guarantee", "successful listing", "ipo", "award"):
+            self.assertNotIn(banned, text.lower())
+
+    def test_external_links_marked_and_responsive_css(self):
+        sec = self.section()
+        for href in re.findall(r'<a [^>]*href="(https://[^"]+)"[^>]*>', sec):
+            self.assertIn('href="%s" rel="noopener"' % href, sec)
+        css = all_css()
+        self.assertRegex(css, r"\.nsx__grid\s*\{[^}]*grid-template-columns:\s*minmax\(0, 1fr\)")
+        self.assertRegex(css, r"min-width: 1024px\)\s*\{[^}]*\.nsx__grid\s*\{[^}]*5fr[^}]*7fr")
+        self.assertIn("overflow-wrap: anywhere", css)
+
 
 class RepoHygieneTests(unittest.TestCase):
     def test_gitignore_covers_python_caches(self):

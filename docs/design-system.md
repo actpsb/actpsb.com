@@ -19,7 +19,7 @@ The original `assets/actp-logo.png` is 841×284, 8-bit sRGB RGB. To reproduce th
 | `--color-soft` | `#F1F5F3` | Alternate light surface |
 | `--color-white` | `#FFFFFF` | White surface and reverse text |
 | `--color-text` | `#1C2926` | Light-surface body |
-| `--color-muted` | `#667570` | Secondary text on canvas only |
+| `--color-muted` | `#5f6e69` | Secondary text on canvas, soft and white surfaces (4.87:1 on soft, 5.11:1 on canvas) |
 | `--color-line` | `#DCE6E2` | Decorative separator, not sole control boundary |
 
 WCAG contrast computation: convert hex sRGB channels to fractions of 255; linearise at 0.04045 (divide by 12.92 below the threshold, otherwise `((c + 0.055)/1.055)^2.4`); luminance weights are 0.2126/0.7152/0.0722; ratio is `(lighter + 0.05)/(darker + 0.05)`. Values below are rounded to two decimals. WCAG 2.2 AA thresholds: normal text 4.5:1, large text (24px regular or 18.66px bold) 3:1, meaningful non-text UI and focus indicator against adjacent colours 3:1. Large-text eligibility does not include small button labels.

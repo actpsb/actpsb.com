@@ -29,7 +29,7 @@ TOKENS = {
     "--color-canvas": "#f8faf9",
     "--color-soft": "#f1f5f3",
     "--color-text": "#1c2926",
-    "--color-muted": "#667570",
+    "--color-muted": "#5f6e69",
     "--color-line": "#dce6e2",
 }
 BANNED_TOOLING = [
@@ -232,9 +232,11 @@ class StructureTests(unittest.TestCase):
                 self.assertTrue(part.strip().startswith(".js "), sel)
         for sel in re.findall(r"([^{}]*)\{[^{}]*animation:(?!\s*none)[^{}]*\}", without_keyframes):
             self.assertIn(".js ", sel, sel)
-        # Only the JS-gated collapsed menu may use display: none.
-        self.assertEqual(len(re.findall(r"display:\s*none", css)), 1)
+        # Only the collapsed menu may use display: none: once JS-gated, and once pre-JS but only when
+        # scripting is enabled (avoids a layout shift), never when scripting is off.
+        self.assertEqual(len(re.findall(r"display:\s*none", css)), 2)
         self.assertRegex(css, r"\.js \.nav-menu\[hidden\]\s*\{\s*display:\s*none")
+        self.assertRegex(css, r"@media \(scripting: enabled\)[^{]*\{\s*html:not\(\.js\) \.nav-menu\s*\{\s*display:\s*none")
 
 
 PAGES = [
@@ -522,7 +524,7 @@ class InsightsSectionTests(unittest.TestCase):
     def test_decorative_art_hidden_and_status_region(self):
         sec = self.section()
         self.assertIn('class="insights__art" aria-hidden="true"', sec)
-        self.assertIn('role="status"', sec)
+        self.assertNotIn('role="status"', sec)  # static content is not a live region (A11Y-3)
 
     def test_responsive_css_and_pattern_documented(self):
         css = all_css()
@@ -666,7 +668,7 @@ class SecondaryPageTests(unittest.TestCase):
     def test_insights_genuine_empty_state(self):
         main = re.search(r"<main.*?</main>", self.read("insights.html"), re.S).group(0)
         self.assertIn("There are no published insights available yet.", main)
-        self.assertIn('role="status"', main)
+        self.assertNotIn('role="status"', main)
         for bad in ("<article", "<time", "Read more", "<img", "<li"):
             self.assertNotIn(bad, main)
 

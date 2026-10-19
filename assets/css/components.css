@@ -553,3 +553,10 @@ html:not(.js) .site-header { position: static; }
   .page-section__grid { grid-template-columns: minmax(0, 4fr) minmax(0, 8fr); gap: var(--space-10); align-items: start; }
   .page-section__head { position: sticky; top: 112px; }
 }
+
+/* With scripting available, collapse the menu before main.js adds .js so the header height does
+   not change after first paint (layout shift). Without scripting the full link list stays visible. */
+@media (scripting: enabled) and (max-width: 1023.98px) {
+  html:not(.js) .nav-menu { display: none; }
+  html:not(.js) .site-header { position: sticky; }
+}

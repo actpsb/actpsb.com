@@ -51,3 +51,6 @@ img { max-width: 100%; height: auto; }
     transition: none !important;
   }
 }
+
+/* Skip-link target receives programmatic focus only; it is not an interactive control. */
+main:focus { outline: none; }

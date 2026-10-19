@@ -100,3 +100,15 @@ With `prefers-reduced-motion: reduce`: no `.reveal` class is applied, panels are
 4. Recheck after SEO merges: title, description, `h1`, landmark and `aria-current` state on every page, and rerun the checks in this report against the final main.
 
 ACTP-019 delivers this audit only. The defects above are unresolved until ACTP-020 fixes and retests them.
+
+## ACTP-020 remediation and verification
+
+Verified on the ACTP-020 branch based on `bb1f7d336ece703c2999aabb8401028c1c4bddd6`; measurements and method are in `docs/qa/performance.md`.
+
+| Finding | Status | Verification |
+|---|---|---|
+| A11Y-1 eyebrow contrast | Fixed | `--color-muted` is now `#5f6e69`: 4.87:1 on `--color-soft`, 5.11:1 on canvas. Lighthouse `color-contrast` passes on all six pages (Accessibility 100). |
+| A11Y-2 skip-link target | Fixed on five pages | `<main id="main" tabindex="-1">`; after Enter on the skip link `document.activeElement` is `main` with no outline, and the next Tab reaches the first link inside main. `contact.html` is owned by ACTP-016 and is still open there. |
+| A11Y-3 static `role="status"` | Fixed on `index.html`, `insights.html` | Role removed, tests assert absence. `contact.html` `.page-boundary` is owned by ACTP-016 and is still open there. |
+
+Rechecked after the SEO commit: titles, descriptions, landmarks, one H1 and `aria-current` are intact. Keyboard, menu (Enter, Space, Escape, focus return), JavaScript-off and reduced-motion behaviour were retested after the fixes with the same results as above. This remains a test record, not a conformance claim.

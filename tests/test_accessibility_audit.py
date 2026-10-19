@@ -26,6 +26,12 @@ class AccessibilityAuditReportTests(unittest.TestCase):
         for term in ("Keyboard", "Escape", "contrast", "320px", "JavaScript off", "Reduced motion", "Forms"):
             self.assertRegex(self.text, re.compile(term, re.I))
 
+    def test_records_remediation_verification(self):
+        self.assertIn("## ACTP-020 remediation and verification", self.text)
+        perf = (REPORT.parent / "performance.md").read_text(encoding="utf-8")
+        for term in ("Lighthouse 13.5.0", "Baseline", "Residual issues", "Deployment instructions", "not deployed"):
+            self.assertIn(term, perf)
+
     def test_does_not_claim_certification(self):
         self.assertIn("not a WCAG conformance claim", self.text)
 

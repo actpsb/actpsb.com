@@ -11,6 +11,19 @@ Checked 2026-10-19 06:10 UTC. Confidence describes the source's support for the 
 | Profile's broad services list covers corporate advisory/consulting, IPO/capital raising and outsourcing, but repeatedly says “our business segments” in a group narrative. | [NSX ACTP profile, Services and About](https://www.nsx.com.au/listing/adviser-profile/130/) | Medium/ambiguous attribution. Public ACTP copy should restrict to its verified nominated-adviser role and link out for broader group offerings, not claim every group service as ACTP's own. |
 | Arris advertises assurance/taxation and company secretarial work on its own site. | [Arris home](https://www.arris.com.my/) | High for Arris' advertisement; NOT evidence ACTP performs these services. |
 
+## Copy provenance and release gate
+
+| Proposed public content | Permitted wording boundary | Source / next action |
+|---|---|---|
+| Identity and positioning | “ACTP Sdn Bhd is listed by NSX as an International Nominated Adviser.” Attribute current status to NSX; do not call it a licence, certification, endorsement or promise of results. | NSX adviser list and profile above; recheck on publication day. |
+| About / group relationship | “NSX describes ACTP as a wholly owned subsidiary of Arris Holdings Berhad.” Do not borrow Arris case studies, staff, credentials or service claims. | NSX profile above; obtain ACTP owner confirmation before production publication of relationship wording. |
+| Services and process | Describe NSX's general nominated-adviser role explicitly as NSX guidance. Do not convert profile's group-level service list or four proposed stages into ACTP's actual offerings or methodology. | NSX role explainer above; obtain an ACTP-approved service catalogue and methodology before expanding. |
+| Contact | “For currently listed contact details, see ACTP's NSX profile.” NSX-listed `arris.com.my` contact is a group-domain listing, not a verified ACTP-owned mailbox. Do not present it as ACTP's own direct channel or claim receipt by ACTP. | NSX profile above; owner must confirm contact ownership and publication permissions before direct contact details appear. An enquiry form additionally needs an approved, tested delivery backend and truthful error/success handling. |
+| Insights | “There are no published insights available yet.” No fabricated cards, dates, excerpts or promised publication schedule. | No approved article source yet; publish articles only with approved copy, author/date and permission. |
+| Visuals and credibility | Supplied `assets/actp-logo.png` is a project asset; the design direction is not evidence of official branding specifications or permission for unrelated imagery. Do not imply logos, photos or testimonials of clients. | Project brief and design direction; confirm trademark permission before production release. |
+
+The H1s, labels and journeys in [`architecture.md`](architecture.md) are editorial proposals; factual claims require the cited source or owner approval. Where approval remains unresolved, omit the claim rather than filling space with plausible copy. For the contact page, an unavailable-channel notice and official profile link are honest; a front-end-only form or success toast is not. Preserve source attribution near NSX-specific assertions and provide the canonical trailing-slash profile link.
+
 ## Open questions / prohibited assumptions
 
 - Confirm ACTP-specific scope, target sectors, engagement stages, case studies, founder biographies, staff, professional licences and permissions for group relationship copy with ACTP. None are independently established for ACTP by the generic group services list.

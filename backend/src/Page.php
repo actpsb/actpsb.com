@@ -38,9 +38,11 @@ final class Page
         if ($tpl === false) {
             return '<!doctype html><title>Contact</title><p>' . self::h($message) . '</p>';
         }
-        $status = '<div id="form-status" class="form-status form-status--' . self::h($state)
-            . '" role="' . ($state === 'accepted' ? 'status' : 'alert') . '" tabindex="-1">'
-            . '<p>' . self::h($message) . '</p>';
+        $status = $message === ''
+            ? '<div id="form-status" class="form-status" tabindex="-1">'
+            : '<div id="form-status" class="form-status form-status--' . self::h($state)
+                . '" role="' . ($state === 'accepted' ? 'status' : 'alert') . '" tabindex="-1">'
+                . '<p>' . self::h($message) . '</p>';
         if ($errors !== []) {
             $status .= '<ul class="form-errors">';
             foreach ($errors as $k => $msg) {
@@ -51,7 +53,7 @@ final class Page
             }
             $status .= '</ul>';
         }
-        if ($requestId !== '' && $state !== 'accepted') {
+        if ($requestId !== '' && $state !== 'accepted' && $message !== '') {
             $status .= '<p class="form-status__ref">Reference: ' . self::h($requestId) . '</p>';
         }
         $status .= '</div>';

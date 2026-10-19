@@ -2,9 +2,34 @@
 // contact-submit.php and the server renders the result. This script never reports success on its own:
 // it shows what the server returned, and a network failure is shown as "not sent".
 (function () {
-  var form = document.querySelector("form.contact-form");
   var status = document.getElementById("form-status");
-  if (!form || !status || !window.fetch || !window.FormData) return;
+  var notice = document.getElementById("form-availability");
+  var tpl = document.getElementById("enquiry-form-template");
+  if (!status || !window.fetch || !window.FormData) return;
+  var form = document.querySelector("form.contact-form");
+
+  // Fail closed: the form is revealed only when the server's preflight says its configuration is
+  // valid. Any failure, timeout or unexpected response leaves the unavailable notice in place.
+  // The preflight never contacts the mail server and sends no visitor data.
+  if (!form) {
+    if (!notice || !tpl || !tpl.content) return;
+    var ctl = window.AbortController ? new AbortController() : null;
+    var timer = window.setTimeout(function () { if (ctl) ctl.abort(); }, 8000);
+    fetch("contact-submit.php?preflight=1", { headers: { Accept: "application/json" }, credentials: "same-origin", cache: "no-store", signal: ctl ? ctl.signal : undefined })
+      .then(function (res) { return res.ok ? res.json() : null; })
+      .then(function (d) {
+        window.clearTimeout(timer);
+        if (!d || d.available !== true) return;
+        notice.replaceWith(tpl.content.cloneNode(true));
+        form = document.querySelector("form.contact-form");
+        if (form) enhance();
+      })
+      .catch(function () { window.clearTimeout(timer); });
+    return;
+  }
+  enhance();
+
+  function enhance() {
   var button = form.querySelector("button[type=submit]");
   var FIELDS = ["name", "email", "organisation", "message"];
 
@@ -90,4 +115,5 @@
       button.removeAttribute("aria-busy");
     });
   });
+  }
 })();

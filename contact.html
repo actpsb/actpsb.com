@@ -25,7 +25,7 @@
     <div class="container">
       <nav class="site-nav" aria-label="Primary">
         <a class="logo-wrap" href="index.html" aria-label="ACTP home">
-          <img class="logo" src="assets/actp-logo.png" width="841" height="284" decoding="async" fetchpriority="high" alt="ACTP logo: a teal stylised mountain-peak symbol beside the teal letters CTP">
+          <img class="logo" src="assets/actp-logo-432.png" width="432" height="146" decoding="async" fetchpriority="high" alt="ACTP logo: a teal stylised mountain-peak symbol beside the teal letters CTP">
         </a>
         <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-menu" hidden>
           <span class="nav-toggle__bars" aria-hidden="true"></span>
@@ -42,12 +42,12 @@
       </nav>
     </div>
   </header>
-  <main id="main">
+  <main id="main" tabindex="-1">
     <section class="section page-head" aria-labelledby="page-title">
       <div class="container">
         <p class="eyebrow">Get in touch</p>
         <h1 id="page-title">Contact</h1>
-        <p class="lead">ACTP has no confirmed direct contact channel on this site yet. The enquiry form below sends a message by email when the mail service is available. The details listed are the ones NSX publishes on ACTP's adviser profile.</p>
+        <p class="lead">ACTP has no confirmed direct contact channel on this site yet. The enquiry form appears below only when the site confirms its mail service is available; otherwise this page says so. The details listed are the ones NSX publishes on ACTP's adviser profile.</p>
         <div class="actions">
           <a class="button" href="https://www.nsx.com.au/listing/adviser-profile/130/" rel="noopener">View NSX-listed contact details (external)</a>
         </div>
@@ -79,9 +79,13 @@
         <div class="page-section__body">
           <!--ACTP:FORM-->
           <div id="form-status" class="form-status" tabindex="-1"></div>
-<form class="contact-form" method="post" action="contact-submit.php" novalidate><div class="field"><label for="field-name">Name</label><input type="text" id="field-name" name="name" autocomplete="name" maxlength="100" required value=""></div><div class="field"><label for="field-email">Email address</label><input type="email" id="field-email" name="email" autocomplete="email" maxlength="254" required value=""></div><div class="field"><label for="field-organisation">Organisation (optional)</label><input type="text" id="field-organisation" name="organisation" autocomplete="organization" maxlength="150" value=""></div><div class="field"><label for="field-message">Message</label><textarea id="field-message" name="message" aria-describedby="message-hint" rows="7" minlength="10" maxlength="5000" required></textarea><p class="field__hint" id="message-hint">10 to 5000 characters.</p></div><div class="field field--trap" aria-hidden="true"><label for="field-website">Leave this field empty</label><input type="text" id="field-website" name="website" tabindex="-1" autocomplete="off" value=""></div><button class="button" type="submit">Send enquiry</button></form>
+          <div id="form-availability" class="form-unavailable">
+            <p><strong>The enquiry form is not available.</strong> This page shows the form only after the site confirms that its mail service is configured. That has not been confirmed, so no form is shown, nothing can be sent from this page and no message has been sent. Please use the NSX-listed details above.</p>
+            <p><a href="contact-submit.php?form=1">Check whether the form is available</a> (works without JavaScript).</p>
+          </div>
+          <template id="enquiry-form-template"><form class="contact-form" method="post" action="contact-submit.php" novalidate><div class="field"><label for="field-name">Name</label><input type="text" id="field-name" name="name" autocomplete="name" maxlength="100" required value=""></div><div class="field"><label for="field-email">Email address</label><input type="email" id="field-email" name="email" autocomplete="email" maxlength="254" required value=""></div><div class="field"><label for="field-organisation">Organisation (optional)</label><input type="text" id="field-organisation" name="organisation" autocomplete="organization" maxlength="150" value=""></div><div class="field"><label for="field-message">Message</label><textarea id="field-message" name="message" aria-describedby="message-hint" rows="7" minlength="10" maxlength="5000" required></textarea><p class="field__hint" id="message-hint">10 to 5000 characters.</p></div><div class="field field--trap" aria-hidden="true"><label for="field-website">Leave this field empty</label><input type="text" id="field-website" name="website" tabindex="-1" autocomplete="off" value=""></div><button class="button" type="submit">Send enquiry</button></form></template>
           <!--/ACTP:FORM-->
-          <p class="form-note">Submitting this form asks ACTP's mail service to accept your message. If the service is unavailable you are told and nothing is sent. Acceptance by the mail service is not confirmation that anyone has read it or will reply. Until a channel is confirmed, the official NSX profile above lists the currently published details.</p>
+          <p class="form-note">When the form is shown, submitting it asks ACTP's mail service to accept your message. If the service is unavailable you are told and nothing is sent. Acceptance by the mail service is not confirmation that anyone has read it or will reply. Until a channel is confirmed, the official NSX profile above lists the currently published details.</p>
         </div>
       </div>
     </section>

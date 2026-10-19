@@ -19,7 +19,7 @@ This is a test record, not a WCAG conformance claim or certification. Parallel S
 | Menu Escape and focus return | Pass |
 | Headings, landmarks, accessible names | Pass, with one advisory |
 | Text contrast | 1 defect (A11Y-1) |
-| Forms | Not applicable; no form exists, which the page states truthfully |
+| Forms | Not covered by the ACTP-019 snapshot (no form existed then); see "Contact form states (ACTP-022)" in `docs/qa/contact-form.md` |
 | 320px, 256px, zoom-equivalent reflow, text spacing | Pass |
 | JavaScript off | Pass |
 | Reduced motion | Pass |
@@ -66,7 +66,7 @@ All seven `tel:` hrefs (one per page, two on `contact.html`) contain the bytes `
 
 ### Forms
 
-There is no form, input, select or textarea on any page, so there is no error semantics to test. `contact.html` says no enquiry form exists and why, which matches the page's actual state.
+At the audited snapshot no page had a form control, so error semantics were not tested then. The contact form added afterwards is covered in `docs/qa/contact-form.md`.
 
 ### Reflow, zoom, text spacing
 

@@ -62,8 +62,8 @@ Mobile LCP 1.4 to 1.8 s, CLS 0, TBT 0 ms on all pages. Every page meets the targ
 
 ## Residual issues and handoffs
 
-- `contact.html` is owned by ACTP-016 (Dexter) and was not edited. It still needs: `tabindex="-1"` on `<main id="main">` (A11Y-2); removal of `role="status"` from `.page-boundary` (A11Y-3), which also needs `tests/test_site.py` `test_contact_accessible_and_truthful` updated (if the form replaces that paragraph this may already be resolved); the `assets/actp-logo-432.png` logo reference with width/height 432x146 (the page scored 99 mobile Performance with the 841px logo). The contact-page contrast and CLS fixes are already effective because they are in shared CSS.
-- No contact backend delivery exists in this task. The contact page states that no enquiry form is in place; ACTP-016 owns the approved cPanel, PHP and SMTP work.
+- `contact.html` now matches the other pages: `tabindex="-1"` on `<main id="main">` (A11Y-2), no `role="status"` on a boundary paragraph (A11Y-3), and the 432x146 logo `assets/actp-logo-432.png`. The scores above for contact predate these edits and the contact form; rerun Lighthouse on `contact.html` before quoting contact numbers.
+- Contact delivery is implemented but not configured or deployed (see `contact-backend.md`); the page shows an unavailable notice by default.
 - Production behaviour is unmeasured: the host must supply compression and caching (see below). Lighthouse "cache lifetime" and compression results will differ.
 - Chromium only; no Safari, Firefox, screen reader or real device test.
 - Canonical URLs, sitemap, `og:url` and `og:image` remain withheld until the production origin is confirmed (ACTP-017). Metadata, titles, descriptions, landmarks, one H1 and `aria-current` were rechecked on the six pages after the SEO commit: unchanged by this task apart from the `main` attribute above, with SEO category 100 on all pages.

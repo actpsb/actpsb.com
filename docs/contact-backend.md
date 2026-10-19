@@ -17,9 +17,15 @@ Not verified, because it has not been authorised or configured: a real cPanel ac
 
 ## Behaviour
 
-`contact.html` contains a real `<form method="post" action="contact-submit.php">`. Without JavaScript the browser posts natively and the server renders the result inside the normal contact page (`noindex`). With `assets/js/contact-form.js` the form posts with `fetch`, shows the server's result in the `#form-status` region and moves focus to it; field errors are linked and set `aria-invalid`. The script never decides success itself.
+`contact.html` fails closed. By default it shows an unavailable notice (`#form-availability`) and holds the real `<form method="post" action="contact-submit.php">` inertly inside `<template id="enquiry-form-template">`, so no control is rendered, focusable or submittable.
 
-Responses: 200 accepted by SMTP; 422 validation errors; 429 rate limited (with `Retry-After`); 502 SMTP refused or unreachable; 503 not configured; 400 honeypot; 403 wrong origin; 405 wrong method; 413 too large; 415 wrong content type. Errors never include server names, credentials, library text or message content.
+- Preflight: `GET contact-submit.php?preflight=1` returns `{"available": true}` (200) only when private configuration loads and validates, else `{"available": false}` (503). It never contacts the mail server, sends no visitor data and returns no configuration value. Valid configuration does not prove the mail server will accept mail.
+- With JavaScript, `assets/js/contact-form.js` runs the preflight (8 s timeout) and swaps the template in only on `available: true`. Any error, timeout or other response leaves the notice. Submission then uses `fetch`, shows the server's result in `#form-status` and moves focus to it; field errors are linked and set `aria-invalid`. The script never decides success itself.
+- Without JavaScript, the notice links to `contact-submit.php?form=1`. That route renders the contact page with the form when configured, or with the 503 unavailable alert and no form when not. Native POSTs render the result inside the normal contact page (`noindex`).
+
+Tests: `tests/test_contact_backend.py` `PreflightTests` (PHP-driven) and `tests/test_site.py` `test_contact_accessible_and_truthful`.
+
+Responses: 200 accepted by SMTP; 422 validation errors; 429 rate limited (with `Retry-After`); 502 SMTP refused or unreachable; 503 not configured (also the preflight and `?form=1` response); 400 honeypot; 403 wrong origin; 405 wrong method; 413 too large; 415 wrong content type. Errors never include server names, credentials, library text or message content.
 
 ## Files
 

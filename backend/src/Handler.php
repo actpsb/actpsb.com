@@ -33,6 +33,17 @@ final class Handler
             && str_contains($server['HTTP_ACCEPT'], 'application/json');
         $method = is_string($server['REQUEST_METHOD'] ?? null) ? $server['REQUEST_METHOD'] : '';
 
+        if ($method === 'GET') {
+            $query = [];
+            parse_str(is_string($server['QUERY_STRING'] ?? null) ? $server['QUERY_STRING'] : '', $query);
+            if (($query['preflight'] ?? null) === '1') {
+                return $this->preflight($rid);
+            }
+            if (($query['form'] ?? null) === '1' && !$json) {
+                return $this->formPage($rid);
+            }
+        }
+
         if ($method !== 'POST') {
             return $this->out($json, 405, 'rejected', 'This address accepts form submissions only. Use the contact page.', [], [], $rid, false, ['Allow' => 'POST']);
         }
@@ -104,6 +115,40 @@ final class Handler
         }
         $log->write($rid, 'smtp_accepted');
         return $this->out($json, 200, 'accepted', 'Your enquiry was accepted by our mail service for delivery. This is not a confirmation that it has been read or that anyone will reply.', [], [], $rid, false);
+    }
+
+    /**
+     * Availability preflight for the contact page script. It only checks that private configuration
+     * loads and validates. It never contacts the mail server and reveals no configuration value or code.
+     */
+    private function preflight(string $rid): Response
+    {
+        $ok = $this->configured($rid);
+        return new Response($ok ? 200 : 503, [
+            'Content-Type' => 'application/json; charset=utf-8',
+            'Cache-Control' => 'no-store',
+            'X-Content-Type-Options' => 'nosniff',
+        ], (string) json_encode(['available' => $ok]));
+    }
+
+    /** No-JavaScript route to the form: rendered only when configured, otherwise the unavailable notice. */
+    private function formPage(string $rid): Response
+    {
+        if (!$this->configured($rid)) {
+            return $this->out(false, 503, 'unavailable', 'The enquiry form is not available yet, so no message can be sent here. Please use the NSX-listed details on this page instead.', [], [], $rid, false);
+        }
+        return $this->out(false, 200, 'ready', '', [], [], $rid, true);
+    }
+
+    private function configured(string $rid): bool
+    {
+        try {
+            Config::load($this->privateDir, $this->env);
+            return true;
+        } catch (ConfigException $e) {
+            $this->log($rid, $e->getMessage(), null);
+            return false;
+        }
     }
 
     /** @param array<string,mixed> $server @param list<string> $allowed */

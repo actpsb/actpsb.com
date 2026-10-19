@@ -281,6 +281,64 @@ class UnconfiguredTests(BackendBase):
         self.assertEqual(r.status, 405)
 
 
+class PreflightTests(BackendBase):
+    BLANK = UnconfiguredTests.BLANK
+
+    def get(self, s, path):
+        try:
+            r = OPENER.open(s.origin + path, timeout=10)
+        except urllib.error.HTTPError as e:
+            r = e
+        return r.status, dict(r.headers), r.read().decode("utf-8", "replace")
+
+    def test_preflight_unconfigured_is_503_and_value_free(self):
+        s = self.start(**self.BLANK)
+        status, headers, body = self.get(s, "/contact-submit.php?preflight=1")
+        self.assertEqual(status, 503)
+        self.assertEqual(json.loads(body), {"available": False})
+        self.assertEqual(headers["Cache-Control"], "no-store")
+        self.assertEqual(self.sb.messages, [])
+
+    def test_preflight_placeholder_template_is_unavailable(self):
+        priv = self.tmp / "private"
+        priv.mkdir()
+        shutil.copy(ROOT / "backend/config/config.example.php", priv / "config.php")
+        s = self.start(**self.BLANK)
+        self.assertEqual(self.get(s, "/contact-submit.php?preflight=1")[0], 503)
+
+    def test_preflight_configured_is_200_without_contacting_mail_server(self):
+        s = self.start()
+        status, _, body = self.get(s, "/contact-submit.php?preflight=1")
+        self.assertEqual(status, 200)
+        self.assertEqual(json.loads(body), {"available": True})
+        self.assertEqual(self.sb.messages, [])
+        self.assertNotRegex(body, r"(?i)smtp|pass|host|mailbox|sandbox")
+
+    def test_form_route_unconfigured_shows_notice_and_no_form(self):
+        s = self.start(**self.BLANK)
+        status, _, body = self.get(s, "/contact-submit.php?form=1")
+        self.assertEqual(status, 503)
+        self.assertIn("not available yet", body)
+        self.assertIn('role="alert"', body)
+        self.assertNotIn("<form", body)
+        self.assertNotIn("enquiry-form-template", body)
+        self.assertNotIn("Send enquiry", body)
+
+    def test_form_route_configured_renders_working_form(self):
+        s = self.start()
+        status, _, body = self.get(s, "/contact-submit.php?form=1")
+        self.assertEqual(status, 200)
+        self.assertIn('<form class="contact-form" method="post" action="contact-submit.php"', body)
+        self.assertNotIn('role="alert"', body)
+        self.assertNotIn("Reference:", body)
+        self.assertNotIn("form-availability", body.split("<!--ACTP:FORM-->")[1].split("<!--/ACTP:FORM-->")[0])
+        self.assertIn('<main id="main" tabindex="-1">', body)
+
+    def test_other_get_still_405(self):
+        s = self.start()
+        self.assertEqual(self.get(s, "/contact-submit.php?preflight=0")[0], 405)
+
+
 class ValidationTests(BackendBase):
     env_over = {"ACTP_RATE_IP_MAX": "100"}
 

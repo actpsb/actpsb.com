@@ -21,4 +21,4 @@ Home carries a minimal schema.org `Organization` (name, NSX-sourced description,
 
 ## Assets and fonts
 
-No web fonts or third-party requests; `--font-heading`/`--font-body` fall back to system stacks. The logo has intrinsic `width`/`height`, `decoding="async"` and `fetchpriority="high"` (above the fold, so not lazy-loaded). The 108 KB PNG is unmodified original; recompression is deferred to the performance ticket.
+No web fonts or third-party requests; `--font-heading`/`--font-body` fall back to system stacks. The logo has intrinsic `width`/`height`, `decoding="async"` and `fetchpriority="high"` (above the fold, so not lazy-loaded). Pages serve the 432x146 `actp-logo-432.png`; the 108 KB 841x284 PNG remains the unmodified original asset.

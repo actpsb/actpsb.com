@@ -90,8 +90,8 @@ class SeoTests(unittest.TestCase):
             for href in re.findall(r'<a [^>]*href="([^"]+)"', read(n)):
                 if re.match(r"[a-z]+:", href) or href.startswith("#"):
                     continue
-                self.assertTrue((ROOT / href.split("#")[0]).is_file(), (n, href))
-                linked.add(href.split("#")[0])
+                self.assertTrue((ROOT / href.split("#")[0].split("?")[0]).is_file(), (n, href))
+                linked.add(href.split("#")[0].split("?")[0])
         for n in PAGES:
             self.assertIn(f"{n}.html", linked)
 

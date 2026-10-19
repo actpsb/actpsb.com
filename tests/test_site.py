@@ -636,7 +636,7 @@ class SecondaryPageTests(unittest.TestCase):
                 if href.startswith("#"):
                     self.assertIn(f'id="{href[1:]}"', html, (name, href))
                 elif not re.match(r"[a-z]+:", href):
-                    self.assertTrue((ROOT / href.split("#")[0]).is_file(), (name, href))
+                    self.assertTrue((ROOT / href.split("#")[0].split("?")[0]).is_file(), (name, href))
             for tag in re.findall(r"<a [^>]*>", html):
                 if "nsx.com.au" in tag and 'href="https://' in tag:
                     self.assertIn("noopener", tag, name)
@@ -684,7 +684,15 @@ class SecondaryPageTests(unittest.TestCase):
         self.assertIn('href="mailto:contact@arris.com.my"', main)
         self.assertRegex(main, r'href="tel:\+[0-9]+"')
         self.assertIn(self.NSX, main)
-        form = re.search(r"<form.*?</form>", main, re.S).group(0)
+        self.assertIn('<main id="main" tabindex="-1">', html)
+        self.assertIn('src="assets/actp-logo-432.png" width="432" height="146"', html)
+        # fail closed: the form is inert inside a template; the visible default is the unavailable notice
+        self.assertNotRegex(re.sub(r"<template.*?</template>", "", main, flags=re.S), r"<form|<input|<textarea|<button")
+        notice = re.search(r'<div id="form-availability".*?</div>', main, re.S).group(0)
+        self.assertIn("not available", notice)
+        self.assertIn("nothing can be sent", notice)
+        self.assertIn('href="contact-submit.php?form=1"', notice)
+        form = re.search(r"<template id=\"enquiry-form-template\">(<form.*?</form>)</template>", main, re.S).group(1)
         self.assertIn('method="post"', form)
         self.assertIn('action="contact-submit.php"', form)
         for name in ("name", "email", "organisation", "message"):

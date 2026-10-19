@@ -294,7 +294,13 @@ class HeroTests(unittest.TestCase):
     def test_copy_is_attributed_and_makes_no_unverified_claims(self):
         text = re.sub(r"<[^>]+>", " ", self.hero()).lower()
         self.assertIn("listed by nsx as an international nominated adviser", text)
-        self.assertIn("nsx.com.au/listing/adviser-profile/130/", self.hero())
+        lead = re.search(r'<p class="lead">.*?</p>', self.hero(), re.S).group(0)
+        note = re.search(r'<p class="hero__note">.*?</p>', self.hero(), re.S).group(0)
+        self.assertIn("listed by NSX", lead)
+        self.assertIn('href="https://www.nsx.com.au/listing/adviser-profile/130/"', lead)
+        self.assertIn("admission procedures", note)
+        self.assertIn('href="https://www.nsx.com.au/regulation/companies/nominated-adviser/"', note)
+        self.assertNotIn("adviser-profile/130", note)
         self.assertIn("not a licence, endorsement or promise of results", text)
         for banned in ("coming soon", "award", "trusted by", "clients", "years of experience", "guarantee"):
             self.assertNotIn(banned, text)

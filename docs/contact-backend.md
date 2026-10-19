@@ -64,7 +64,9 @@ Rules the code enforces: TLS is always on with certificate and host-name verific
 
 ## Install steps (File Manager only; when authorised)
 
-The host has no cPanel Terminal, so nothing runs on the server except PHP serving the site. Packages are built on a workstation with `ACTP_PHP=/path/to/php ACTP_COMPOSER=/path/to/composer.phar python3 scripts/build_packages.py`, which writes three ZIPs to `dist/` (git-ignored, contain no secrets, no `.git`, tests, docs or installers; Composer dependencies are already installed in the backend ZIP):
+Download the `actpsb-cpanel-<commit SHA>` artifact from a successful [CI run](https://github.com/actpsb/actpsb.com/actions/workflows/ci.yml) and unzip that download on your computer to obtain the three upload ZIPs below. CI installs the locked dependencies, runs the backend/sandbox and extracted-package tests, then builds and publishes these packages. Artifacts expire after 30 days; the exact commit SHA identifies their source. The three ZIPs are also supplied as task attachments for the reviewed handoff.
+
+The host has no cPanel Terminal, so nothing runs on the server except PHP serving the site. For a manual workstation build, use `ACTP_PHP=/path/to/php ACTP_COMPOSER=/path/to/composer.phar python3 scripts/build_packages.py`, which writes three ZIPs to `dist/` (git-ignored, contain no secrets, no `.git`, tests, docs or installers; Composer dependencies are already installed in the backend ZIP):
 
 - `actpsb-public.zip`: site pages, `assets/`, `robots.txt`, `contact-submit.php`
 - `actpsb-backend.zip`: `src/`, `vendor/` (PHPMailer 6.12.0, locked), `licenses/`

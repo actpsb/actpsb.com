@@ -15,9 +15,23 @@
   <a class="skip-link" href="#main">Skip to main content</a>
   <header class="site-header">
     <div class="container">
-      <a class="logo-wrap" href="index.html" aria-label="ACTP home">
-        <img class="logo" src="assets/actp-logo.png" width="841" height="284" alt="ACTP logo: a teal stylised mountain-peak symbol beside the teal letters CTP">
-      </a>
+      <nav class="site-nav" aria-label="Primary">
+        <a class="logo-wrap" href="index.html" aria-label="ACTP home">
+          <img class="logo" src="assets/actp-logo.png" width="841" height="284" alt="ACTP logo: a teal stylised mountain-peak symbol beside the teal letters CTP">
+        </a>
+        <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-menu" hidden>
+          <span class="nav-toggle__bars" aria-hidden="true"></span>
+          <span>Menu</span>
+        </button>
+        <ul class="nav-menu" id="site-menu">
+          <li><a class="nav-link" href="index.html" aria-current="page">Home</a></li>
+          <li><a class="nav-link" href="about.html">About Us</a></li>
+          <li><a class="nav-link" href="services.html">Services</a></li>
+          <li><a class="nav-link" href="nsx-adviser.html">NSX Adviser</a></li>
+          <li><a class="nav-link" href="insights.html">Insights</a></li>
+          <li><a class="nav-link nav-link--cta" href="contact.html">Contact</a></li>
+        </ul>
+      </nav>
     </div>
   </header>
   <main id="main">

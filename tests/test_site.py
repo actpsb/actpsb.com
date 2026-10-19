@@ -224,7 +224,56 @@ class StructureTests(unittest.TestCase):
     def test_progressive_enhancement_does_not_hide_content(self):
         css = all_css()
         self.assertNotRegex(css, r"opacity:\s*0\b")
-        self.assertNotRegex(css, r"display:\s*none")
+        # Only the JS-gated collapsed menu may use display: none.
+        self.assertEqual(len(re.findall(r"display:\s*none", css)), 1)
+        self.assertRegex(css, r"\.js \.nav-menu\[hidden\]\s*\{\s*display:\s*none")
+
+
+PAGES = [
+    ("index.html", "Home"), ("about.html", "About Us"), ("services.html", "Services"),
+    ("nsx-adviser.html", "NSX Adviser"), ("insights.html", "Insights"), ("contact.html", "Contact"),
+]
+
+
+class NavTests(unittest.TestCase):
+    def page(self, name):
+        p = Page()
+        p.feed((ROOT / name).read_text(encoding="utf-8"))
+        return p
+
+    def test_every_page_has_same_nav_with_current_marker(self):
+        for name, _ in PAGES:
+            html = (ROOT / name).read_text(encoding="utf-8")
+            links = re.findall(r'<a class="nav-link[^"]*" href="([^"]+)"( aria-current="page")?>([^<]+)</a>', html)
+            self.assertEqual([(h, l) for h, _, l in links], PAGES, name)
+            self.assertEqual([h for h, c, _ in links if c], [name], name)
+            self.assertEqual(html.count("<h1"), 1, name)
+            for h, _ in PAGES:
+                self.assertTrue((ROOT / h).is_file(), h)
+
+    def test_native_toggle_markup(self):
+        for name, _ in PAGES:
+            p = self.page(name)
+            btn = p.find("button", **{"class": "nav-toggle"})
+            self.assertEqual(len(btn), 1, name)
+            self.assertEqual(btn[0]["type"], "button")
+            self.assertEqual(btn[0]["aria-expanded"], "false")
+            self.assertEqual(btn[0]["aria-controls"], "site-menu")
+            self.assertTrue(p.find("ul", id="site-menu"))
+            self.assertTrue(p.find("nav", **{"aria-label": "Primary"}))
+
+    def test_menu_not_hidden_in_markup_for_no_js(self):
+        html = (ROOT / "index.html").read_text(encoding="utf-8")
+        self.assertNotRegex(html, r'<ul[^>]*id="site-menu"[^>]*hidden')
+
+    def test_js_behaviour_and_css_targets(self):
+        js = read_css("assets/js/main.js")
+        for needle in ("aria-expanded", "Escape", "toggle.focus()", "contains(event.target)"):
+            self.assertIn(needle, js)
+        css = all_css()
+        self.assertRegex(css, r"\.nav-link\s*\{[^}]*min-height:\s*var\(--tap-min\)")
+        self.assertRegex(css, r"\.nav-toggle:not\(\[hidden\]\)\s*\{[^}]*min-height:\s*var\(--tap-min\)")
+        self.assertRegex(css, r"\.site-header\s*\{[^}]*position:\s*sticky")
 
 
 class RepoHygieneTests(unittest.TestCase):

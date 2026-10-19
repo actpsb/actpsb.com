@@ -28,6 +28,20 @@ body {
   text-align: center;
 }
 
+.logo-wrap {
+  width: min(100%, 22rem);
+  margin: 0 auto 1.5rem;
+  padding: 0.75rem 1rem;
+  background: #fff;
+  border-radius: 0.75rem;
+}
+
+.logo {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
 .page::before {
   content: "";
   display: block;

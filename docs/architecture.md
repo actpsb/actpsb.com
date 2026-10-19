@@ -1,6 +1,6 @@
 # ACTP architecture, IA and delivery gates
 
-As of 2026-10-19, the repository contains a coming-soon static page and CI; the following is the approved target, not a claim of implementation. Canonical request is `docs/project-brief.md`; installed implementer `dev-dexter` resolves brief's `dex-dexter`, and no shooshy profile exists.
+As of 2026-10-19, the repository contains the shared CSS/JS structure, a semantic homepage shell (header, hero, footer), stdlib tests and CI; the six-page IA below is the approved target, not a claim of implementation. Canonical request is `docs/project-brief.md`; installed implementer `dev-dexter` resolves brief's `dex-dexter`, and no shooshy profile exists.
 
 ## Information architecture
 

@@ -46,3 +46,27 @@ document.documentElement.classList.add("js");
   desktop.addEventListener("change", function () { open = false; render(); });
   render();
 })();
+
+// Scroll reveal for the approach steps. Steps stay visible unless observation starts successfully.
+(function () {
+  var steps = document.querySelectorAll(".approach__step");
+  if (!steps.length || !("IntersectionObserver" in window)) return;
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  try {
+    var observer = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("is-visible");
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.15 });
+    steps.forEach(function (step) { step.classList.add("reveal"); observer.observe(step); });
+    // Safety net: never leave content hidden if intersection events do not arrive.
+    window.setTimeout(function () {
+      steps.forEach(function (step) { step.classList.add("is-visible"); });
+    }, 3000);
+  } catch (e) {
+    steps.forEach(function (step) { step.classList.remove("reveal"); });
+  }
+})();

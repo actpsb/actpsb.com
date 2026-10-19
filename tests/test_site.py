@@ -225,7 +225,11 @@ class StructureTests(unittest.TestCase):
         css = all_css()
         # Hidden-start opacity is allowed only inside the JS-gated reveal keyframes.
         without_keyframes = re.sub(r"@keyframes[^{]+\{(?:[^{}]*\{[^{}]*\})*[^{}]*\}", "", css)
-        self.assertNotRegex(without_keyframes, r"opacity:\s*0\b")
+        # Rules that start hidden must be gated behind the JS-set .js class.
+        no_comments = re.sub(r"/\*.*?\*/", "", without_keyframes, flags=re.S)
+        for sel in re.findall(r"([^{}]*)\{[^{}]*opacity:\s*0\b[^{}]*\}", no_comments):
+            for part in sel.split(","):
+                self.assertTrue(part.strip().startswith(".js "), sel)
         for sel in re.findall(r"([^{}]*)\{[^{}]*animation:(?!\s*none)[^{}]*\}", without_keyframes):
             self.assertIn(".js ", sel, sel)
         # Only the JS-gated collapsed menu may use display: none.
@@ -451,6 +455,42 @@ class NsxSectionTests(unittest.TestCase):
         self.assertRegex(css, r"\.nsx__grid\s*\{[^}]*grid-template-columns:\s*minmax\(0, 1fr\)")
         self.assertRegex(css, r"min-width: 1024px\)\s*\{[^}]*\.nsx__grid\s*\{[^}]*5fr[^}]*7fr")
         self.assertIn("overflow-wrap: anywhere", css)
+
+
+class ApproachSectionTests(unittest.TestCase):
+    def section(self):
+        html = (ROOT / "index.html").read_text(encoding="utf-8")
+        m = re.search(r'<section class="section section--soft approach".*?</section>', html, re.S)
+        self.assertTrue(m)
+        return m.group(0)
+
+    def test_four_ordered_stages_in_order(self):
+        sec = self.section()
+        self.assertIn('<ol class="approach__steps"', sec)
+        self.assertEqual(sec.count('<li class="approach__step">'), 4)
+        names = re.findall(r"<h3>(.*?)</h3>", sec)
+        self.assertEqual(names, ["Discover", "Strategise", "Execute", "Support"])
+        self.assertEqual(len(re.findall(r"<h2", sec)), 1)
+        self.assertNotIn("<h1", sec)
+
+    def test_explicitly_illustrative_not_asserted_methodology(self):
+        text = re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", self.section())).lower()
+        self.assertIn("illustrative", text)
+        self.assertIn("not acTP's confirmed methodology".lower(), text)
+        self.assertIn("pending confirmation by actp", text)
+        for banned in ["our proven", "guarantee", "we deliver", "years of experience"]:
+            self.assertNotIn(banned, text.replace("makes no promise", ""))
+
+    def test_no_js_visibility_and_reduced_motion(self):
+        css = all_css()
+        self.assertRegex(css, r"\.js \.approach__step\.reveal\s*\{[^}]*opacity: 0")
+        self.assertNotRegex(css, r"(?m)^\.approach__step\s*\{[^}]*opacity: 0")
+        self.assertRegex(css, r"prefers-reduced-motion: reduce\)\s*\{[^}]*\.approach__step\.reveal[^}]*opacity: 1")
+        self.assertRegex(css, r"min-width: 1024px\)\s*\{[^}]*\.approach__steps\s*\{[^}]*repeat\(4")
+        js = (ROOT / "assets/js/main.js").read_text(encoding="utf-8")
+        self.assertIn("prefers-reduced-motion", js)
+        self.assertIn("IntersectionObserver", js)
+        self.assertIn("setTimeout", js)
 
 
 class RepoHygieneTests(unittest.TestCase):

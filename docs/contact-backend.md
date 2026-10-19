@@ -29,15 +29,23 @@ Responses: 200 accepted by SMTP; 422 validation errors; 429 rate limited (with `
 - `backend/config/config.example.php`: non-secret placeholder template. Placeholders fail validation by design.
 - `assets/js/contact-form.js`, `assets/css/contact-form.css`: contact-page-only enhancement and styles
 
+## Owner-confirmed mail settings (non-secret)
+
+- SMTP host `mail.actpsb.com`, port 465, implicit TLS/SMTPS with certificate verification, authentication required
+- Username `contact@actpsb.com`; the same mailbox is both From and the enquiry recipient; the visitor address is Reply-To only
+- The owner sets the mailbox password directly on the server; it is never in chat, git or this repository
+- Domain exists in cPanel; its document root is shown as `/public_html/actpsb.com`
+- Still unconfirmed: absolute home path, PHP version, exact live origin (`https://actpsb.com` is the template value; confirm www handling)
+
 ## Server layout (cPanel)
 
 Everything except the public files lives outside `public_html`:
 
-    /home/CPANELUSER/public_html/        site files incl. contact.html, contact-submit.php, assets/
+    /home/CPANELUSER/public_html/actpsb.com/   site files incl. contact.html, contact-submit.php, assets/ (document root shown by cPanel)
     /home/CPANELUSER/actp-backend/       backend/ contents: src/, vendor/, composer.json, composer.lock
     /home/CPANELUSER/actp-private/       config.php (chmod 600), var/ (rate-limit state, log; created 0700)
 
-`contact-submit.php` finds the first two as siblings of the web root: `../actp-backend` and `../actp-private`. Override with the `ACTP_BACKEND_DIR` and `ACTP_PRIVATE_DIR` environment variables if the layout differs. Do not upload `backend/` into `public_html`.
+`contact-submit.php` resolves both from the account home. When the document root sits directly under a folder named `public_html` (as `/public_html/actpsb.com`), that home is two levels up, because `public_html` itself is web-served; otherwise they are siblings of the document root. Override with the `ACTP_BACKEND_DIR` and `ACTP_PRIVATE_DIR` environment variables if the layout differs. Do not upload `backend/` anywhere under `public_html`.
 
 ## Configuration
 
@@ -58,9 +66,9 @@ Rules the code enforces: TLS is always on with certificate and host-name verific
 These are not confirmed and are not invented here:
 
 - [ ] cPanel URL and account; PHP version available; whether SSH/Composer exists on the host (otherwise install on a workstation and upload `vendor/`)
-- [ ] Confirmed hosting origin (scheme and host) for `allowed_origins`; also unlocks canonical URLs and sitemap (see `seo.md`)
-- [ ] Domain mailbox to use as From and its SMTP host, port, user (password entered by the owner on the server only)
-- [ ] Confirmed enquiry recipient, owned by ACTP
+- [ ] Confirm live origin (scheme and host, www or not) for `allowed_origins`; also unlocks canonical URLs and sitemap (see `seo.md`)
+- [x] Mailbox, SMTP host/port/TLS and recipient: confirmed by owner (see above); password to be set by the owner on the server
+- [ ] Absolute home path and PHP version
 - [ ] DNS authentication for the sending domain (SPF, DKIM, DMARC), owner action
 - [ ] Privacy notice wording and retention statement from ACTP. None is published; do not add placeholder claims.
 - [ ] Whether a proxy or CDN sits in front of PHP (sets `trusted_proxies`)

@@ -467,7 +467,7 @@ class PublicSurfaceTests(unittest.TestCase):
     def test_template_is_placeholder_only(self):
         text = (ROOT / "backend/config/config.example.php").read_text(encoding="utf-8")
         self.assertIn("CONFIRM_", text)
-        self.assertIn("example.invalid", text)
+        self.assertNotRegex(text, r"(?i)pass'\s*=>\s*'(?!CONFIRM_)")
 
     def test_composer_lock_pins_phpmailer_and_license_present(self):
         lock = json.loads((ROOT / "backend/composer.lock").read_text())

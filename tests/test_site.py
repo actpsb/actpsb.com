@@ -361,6 +361,51 @@ class IntroTests(unittest.TestCase):
         self.assertRegex(css, r"\.intro__grid\s*\{[^}]*grid-template-columns:\s*minmax\(0, 1fr\)")
 
 
+class ServicesTests(unittest.TestCase):
+    def section(self):
+        html = (ROOT / "index.html").read_text(encoding="utf-8")
+        m = re.search(r'<section class="section section--dark services".*?</section>', html, re.S)
+        self.assertTrue(m)
+        return m.group(0)
+
+    def test_heading_structure_and_cta(self):
+        sec = self.section()
+        self.assertEqual(sec.count("<h2"), 1)
+        self.assertNotIn("<h1", sec)
+        self.assertIn('aria-labelledby="services-title"', sec)
+        self.assertIn('<a class="button button--light" href="services.html">View services</a>', sec)
+
+    def test_nsx_scope_is_attributed_and_generic(self):
+        sec = self.section()
+        text = re.sub(r"<[^>]+>", " ", sec)
+        for phrase in ("Admission procedures", "Directors' obligations", "NSX Rules"):
+            self.assertIn(phrase, text)
+        self.assertIn('href="https://www.nsx.com.au/regulation/companies/nominated-adviser/"', sec)
+        self.assertIn("not a catalogue of ACTP's engagements", text)
+        self.assertIn("not a guarantee of admission, capital raising or any outcome", text)
+
+    def test_arris_services_qualified_and_linked(self):
+        sec = self.section()
+        text = re.sub(r"<[^>]+>", " ", sec)
+        self.assertIn('href="https://www.arris.com.my/"', sec)
+        self.assertIn("does not establish these as ACTP services", re.sub(r"\s+", " ", text))
+        for banned in ("ipo", "restructuring", "award", "clients", "years of experience"):
+            self.assertNotIn(banned, text.lower())
+
+    def test_distinct_panels_not_uniform_cards(self):
+        sec = self.section()
+        classes = re.findall(r'class="(services__panel services__panel--\w+)"', sec)
+        self.assertEqual(len(set(classes)), 3)
+        self.assertNotIn("card", sec)
+
+    def test_responsive_and_contrast_css(self):
+        css = all_css()
+        self.assertRegex(css, r"\.services__grid\s*\{[^}]*grid-template-columns:\s*minmax\(0, 1fr\)")
+        self.assertRegex(css, r"min-width: 1024px\)\s*\{[^}]*\.services__grid\s*\{[^}]*4fr[^}]*8fr")
+        self.assertIn(".services__panel:hover", css)
+        self.assertRegex(css, r"\.button--light\s*\{[^}]*color:\s*var\(--color-forest-dark\)")
+
+
 class RepoHygieneTests(unittest.TestCase):
     def test_gitignore_covers_python_caches(self):
         text = (ROOT / ".gitignore").read_text(encoding="utf-8")

@@ -16,5 +16,15 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.x"
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.3"
+          extensions: openssl, mbstring
+          tools: composer:v2
+      - name: Install backend dependencies (locked)
+        run: composer install --working-dir=backend --no-interaction --no-progress --prefer-dist
+      - name: PHP lint
+        run: |
+          for f in backend/src/*.php backend/config/*.php contact-submit.php; do php -l "$f"; done
       - name: Run tests
         run: python -m unittest discover -s tests -v

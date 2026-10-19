@@ -1,0 +1,24 @@
+{
+  "name": "actp/contact-backend",
+  "description": "Server-side contact delivery for actpsb.com (PHP + authenticated SMTP via PHPMailer). Not used by visitors' browsers; no frontend build.",
+  "type": "project",
+  "license": "proprietary",
+  "require": {
+    "php": ">=8.1",
+    "ext-openssl": "*",
+    "ext-mbstring": "*",
+    "phpmailer/phpmailer": "6.12.0"
+  },
+  "config": {
+    "platform": {
+      "php": "8.1.0"
+    },
+    "optimize-autoloader": true,
+    "sort-packages": true
+  },
+  "autoload": {
+    "psr-4": {
+      "Actp\\Contact\\": "src/"
+    }
+  }
+}

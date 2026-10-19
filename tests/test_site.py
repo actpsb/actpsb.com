@@ -587,11 +587,13 @@ class ContactFooterTests(unittest.TestCase):
         self.assertRegex(css, r"\.button--cta\s*\{[^}]*background:\s*var\(--color-forest-dark\)[^}]*color:\s*var\(--color-white\)")
         self.assertRegex(css, r"\.site-footer\s*\{[^}]*background:\s*var\(--color-forest-dark\)")
 
-    def test_no_form_or_fake_success(self):
+    def test_form_has_no_fake_success(self):
         html = self.read("contact.html")
-        self.assertNotIn("<form", html)
+        self.assertIn("<form", html)
         self.assertNotRegex(html.lower(), r"message sent|thank you for|successfully")
-        self.assertIn("no enquiry form yet", html.lower())
+        # The static page never claims acceptance; only the server's response can, after SMTP success.
+        self.assertNotIn("accepted by our mail service", html)
+        self.assertIn("Acceptance by the mail service is not confirmation", html)
 
 
 class SecondaryPageTests(unittest.TestCase):
@@ -663,7 +665,9 @@ class SecondaryPageTests(unittest.TestCase):
         for name in self.H1:
             main = re.search(r"<main.*?</main>", self.read(name), re.S).group(0).lower()
             self.assertNotRegex(main, r"testimonial|award|years of experience|since 19|since 20(?!22)|our clients|our team|guarantee[sd]? (?:admission|success|results)", name)
-            self.assertNotRegex(main, r"<form|message sent|thank you for", name)
+            self.assertNotRegex(main, r"message sent|thank you for", name)
+            if name != "contact.html":
+                self.assertNotIn("<form", main, name)
 
     def test_insights_genuine_empty_state(self):
         main = re.search(r"<main.*?</main>", self.read("insights.html"), re.S).group(0)
@@ -676,13 +680,26 @@ class SecondaryPageTests(unittest.TestCase):
         html = self.read("contact.html")
         main = re.search(r"<main.*?</main>", html, re.S).group(0)
         self.assertIn("not a confirmed ACTP-owned mailbox", main)
-        self.assertIn("no enquiry form yet", main.lower())
-        self.assertIn('role="status"', main)
+        self.assertNotIn("no enquiry form yet", main.lower())
         self.assertIn('href="mailto:contact@arris.com.my"', main)
         self.assertRegex(main, r'href="tel:\+[0-9]+"')
         self.assertIn(self.NSX, main)
-        self.assertNotIn("<form", html)
-        self.assertNotIn("<input", html)
+        form = re.search(r"<form.*?</form>", main, re.S).group(0)
+        self.assertIn('method="post"', form)
+        self.assertIn('action="contact-submit.php"', form)
+        for name in ("name", "email", "organisation", "message"):
+            self.assertRegex(form, rf'<label for="field-{name}">')
+            self.assertRegex(form, rf'id="field-{name}" name="{name}"')
+        self.assertRegex(form, r'type="email"[^>]*autocomplete="email"')
+        self.assertIn('autocomplete="name"', form)
+        self.assertRegex(form, r'<button class="button" type="submit">')
+        self.assertIn('id="form-status"', main)
+        # honeypot is hidden from assistive tech and keyboard
+        self.assertRegex(form, r'aria-hidden="true">.*?name="website" tabindex="-1"')
+        # visible text says what the form can and cannot promise
+        self.assertIn("not confirmation that anyone has read it", main)
+        self.assertNotRegex(main, r"(?i)<input[^>]*type=\"hidden\"")
+        self.assertNotRegex(html, r"smtp|password|mail_to")
 
     def test_secondary_page_css(self):
         css = all_css()

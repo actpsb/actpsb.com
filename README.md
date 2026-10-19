@@ -1,6 +1,6 @@
 # actpsb.com
 
-ACTP website — actpsb.com. Plain HTML5, CSS3 and vanilla JavaScript; no framework, package manager or build step.
+ACTP website — actpsb.com. Plain HTML5, CSS3 and vanilla JavaScript for the site itself: no frontend framework, package manager or build step. The one approved backend exception is the contact form's PHP endpoint (`contact-submit.php`, `backend/`), which sends mail through authenticated SMTP with PHPMailer; see `docs/contact-backend.md`.
 
 ## Structure
 
@@ -12,7 +12,9 @@ ACTP website — actpsb.com. Plain HTML5, CSS3 and vanilla JavaScript; no framew
       layout.css          container, reading measure, section blocks, skip link
       components.css      header/logo, eyebrow, lead, buttons, footer
     assets/js/main.js     progressive-enhancement entry (deferred; site works without it)
-    docs/                 brief, content sources, design system, architecture
+    contact-submit.php    same-origin POST endpoint for the contact form (PHP, wiring only)
+    backend/              PHP contact backend: src/, composer.json + lock, config template, licences
+    docs/                 brief, content sources, design system, architecture, contact-backend runbook
     tests/test_site.py    stdlib unittest harness
 
 New pages reuse the same four stylesheets and shell. Add new tokens to `tokens.css`, new patterns to `components.css`.

@@ -23,7 +23,7 @@ Source and publication rules are in [`content-sources.md`](content-sources.md). 
 
 ## Implementation contract
 
-Plain HTML5, CSS3, modular vanilla JS without framework/build system. Keep flat HTML paths and existing logo; organize CSS/JS only where useful. Shared semantic navigation/footer pattern repeated in static pages, with automated link/headings/asset checks to catch drift. Progressive enhancement, keyboard/focus/Escape and reduced-motion. Contact form must not claim delivery without approved backend. On unavailable endpoint provide truthful unavailable/error state and verified contact links; defer only delivery integration, not other pages. No paid service enrollment or test enquiries. SEO titles/meta/OG, sitemap/robots with canonical URLs only when hosting origin confirmed. Document deployment instructions without deploying.
+Plain HTML5, CSS3, modular vanilla JS without framework/build system. Keep flat HTML paths and existing logo; organize CSS/JS only where useful. Shared semantic navigation/footer pattern repeated in static pages, with automated link/headings/asset checks to catch drift. Progressive enhancement, keyboard/focus/Escape and reduced-motion. Contact form never claims delivery without a real SMTP acceptance; the approved PHP/SMTP backend exception is documented in [`contact-backend.md`](contact-backend.md). On unavailable endpoint provide truthful unavailable/error state and verified contact links; defer only delivery integration, not other pages. No paid service enrollment or test enquiries. SEO titles/meta/OG, sitemap/robots with canonical URLs only when hosting origin confirmed. Document deployment instructions without deploying.
 
 ## Milestones and ordering
 

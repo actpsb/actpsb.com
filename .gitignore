@@ -2,3 +2,7 @@ __pycache__/
 *.py[cod]
 .pytest_cache/
 .DS_Store
+backend/vendor/
+backend/config/config.php
+*.env
+.env

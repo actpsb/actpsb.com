@@ -223,7 +223,11 @@ class StructureTests(unittest.TestCase):
 
     def test_progressive_enhancement_does_not_hide_content(self):
         css = all_css()
-        self.assertNotRegex(css, r"opacity:\s*0\b")
+        # Hidden-start opacity is allowed only inside the JS-gated reveal keyframes.
+        without_keyframes = re.sub(r"@keyframes[^{]+\{(?:[^{}]*\{[^{}]*\})*[^{}]*\}", "", css)
+        self.assertNotRegex(without_keyframes, r"opacity:\s*0\b")
+        for sel in re.findall(r"([^{}]*)\{[^{}]*animation:(?!\s*none)[^{}]*\}", without_keyframes):
+            self.assertIn(".js ", sel, sel)
         # Only the JS-gated collapsed menu may use display: none.
         self.assertEqual(len(re.findall(r"display:\s*none", css)), 1)
         self.assertRegex(css, r"\.js \.nav-menu\[hidden\]\s*\{\s*display:\s*none")
@@ -274,6 +278,40 @@ class NavTests(unittest.TestCase):
         self.assertRegex(css, r"\.nav-link\s*\{[^}]*min-height:\s*var\(--tap-min\)")
         self.assertRegex(css, r"\.nav-toggle:not\(\[hidden\]\)\s*\{[^}]*min-height:\s*var\(--tap-min\)")
         self.assertRegex(css, r"\.site-header\s*\{[^}]*position:\s*sticky")
+
+
+class HeroTests(unittest.TestCase):
+    def hero(self):
+        html = (ROOT / "index.html").read_text(encoding="utf-8")
+        m = re.search(r'<section class="hero".*?</section>', html, re.S)
+        self.assertTrue(m)
+        return m.group(0)
+
+    def test_two_relevant_ctas_to_local_routes(self):
+        ctas = re.findall(r'<a class="button[^"]*" href="([^"]+)">([^<]+)</a>', self.hero())
+        self.assertEqual(ctas, [("nsx-adviser.html", "Explore the adviser role"), ("about.html", "About ACTP")])
+
+    def test_copy_is_attributed_and_makes_no_unverified_claims(self):
+        text = re.sub(r"<[^>]+>", " ", self.hero()).lower()
+        self.assertIn("listed by nsx as an international nominated adviser", text)
+        self.assertIn("nsx.com.au/listing/adviser-profile/130/", self.hero())
+        self.assertIn("not a licence, endorsement or promise of results", text)
+        for banned in ("coming soon", "award", "trusted by", "clients", "years of experience", "guarantee"):
+            self.assertNotIn(banned, text)
+
+    def test_artwork_is_original_inline_svg_and_decorative(self):
+        hero = self.hero()
+        self.assertEqual(hero.count("<svg"), 1)
+        self.assertRegex(hero, r'class="hero__art" aria-hidden="true"')
+        self.assertNotIn("<img", hero)
+        self.assertNotRegex(hero, r"unsplash|pexels|shutterstock|stock")
+
+    def test_hero_layout_and_motion_css(self):
+        css = all_css()
+        self.assertRegex(css, r"\.hero__grid\s*\{[^}]*grid-template-columns:\s*minmax\(0, 1fr\)")
+        self.assertRegex(css, r"min-width: 1024px\)\s*\{[^}]*\.hero__grid\s*\{[^}]*11fr[^}]*9fr")
+        self.assertRegex(css, r"\.js \.hero__copy\s*\{[^}]*animation:")
+        self.assertIn("prefers-reduced-motion: reduce", css)
 
 
 class RepoHygieneTests(unittest.TestCase):

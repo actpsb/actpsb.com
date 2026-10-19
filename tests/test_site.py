@@ -320,6 +320,47 @@ class HeroTests(unittest.TestCase):
         self.assertIn("prefers-reduced-motion: reduce", css)
 
 
+class IntroTests(unittest.TestCase):
+    def section(self):
+        html = (ROOT / "index.html").read_text(encoding="utf-8")
+        m = re.search(r'<section class="section intro".*?</section>', html, re.S)
+        self.assertTrue(m)
+        return m.group(0)
+
+    def test_semantic_headings_and_about_destination(self):
+        sec = self.section()
+        self.assertEqual(sec.count("<h2"), 1)
+        self.assertNotIn("<h1", sec)
+        self.assertIn('aria-labelledby="intro-title"', sec)
+        self.assertRegex(sec, r'<a class="button" href="about.html">About ACTP</a>')
+        self.assertTrue((ROOT / "about.html").is_file())
+
+    def test_distinguishes_actp_from_arris_with_nsx_sources(self):
+        sec = self.section()
+        text = re.sub(r"<[^>]+>", " ", sec)
+        self.assertIn("International Nominated Adviser, a member since 2022", text)
+        self.assertIn("href=\"https://www.nsx.com.au/listing/adviser-list/\"", sec)
+        self.assertIn("href=\"https://www.nsx.com.au/listing/adviser-profile/130/\"", sec)
+        self.assertIn("describes ACTP Sdn. Bhd. as a wholly owned subsidiary of Arris Holdings Berhad", text)
+        self.assertIn("Arris is a separate company", text)
+        self.assertIn("not presented here as ACTP's own", text)
+
+    def test_no_invented_people_offices_or_outcomes(self):
+        low = re.sub(r"<[^>]+>", " ", self.section()).lower()
+        for banned in ("founder", "director", "our team", "office", "puchong", "years", "award",
+                       "clients", "guarantee", "@", "+603"):
+            self.assertNotIn(banned, low)
+
+    def test_artwork_decorative_inline_svg_and_responsive_css(self):
+        sec = self.section()
+        self.assertEqual(sec.count("<svg"), 1)
+        self.assertRegex(sec, r'class="intro__art" aria-hidden="true"')
+        self.assertNotIn("<img", sec)
+        css = all_css()
+        self.assertRegex(css, r"min-width: 1024px\)\s*\{[^}]*\.intro__grid\s*\{[^}]*5fr[^}]*7fr")
+        self.assertRegex(css, r"\.intro__grid\s*\{[^}]*grid-template-columns:\s*minmax\(0, 1fr\)")
+
+
 class RepoHygieneTests(unittest.TestCase):
     def test_gitignore_covers_python_caches(self):
         text = (ROOT / ".gitignore").read_text(encoding="utf-8")

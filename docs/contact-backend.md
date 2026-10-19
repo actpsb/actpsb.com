@@ -62,13 +62,23 @@ Copy `backend/config/config.example.php` to `actpsb-private/config.php`, chmod 6
 
 Rules the code enforces: TLS is always on with certificate and host-name verification; plaintext SMTP and `mail()` are not available; the recipient and From come only from configuration; `allowed_origins` must be https except localhost; `trusted_proxies` stays empty unless a proxy sits directly in front of PHP, in which case only the right-most untrusted `X-Forwarded-For` hop is used.
 
-## Install steps (when authorised)
+## Install steps (File Manager only; when authorised)
 
-1. On a workstation: `cd backend && composer install --no-dev --optimize-autoloader` (PHP 8.1 or newer, `openssl` and `mbstring` extensions). Review `git status`: `vendor/` is ignored and must not be committed.
-2. Upload `backend/{src,vendor,composer.json,composer.lock,licenses}` to `~/actpsb-backend/` and the site files plus `contact-submit.php` to `public_html`.
-3. Create `~/actpsb-private/config.php` from the template with real values, `chmod 600`. Do not paste credentials into chat, tickets or git.
-4. Target PHP 8.3 (ea-php83). Verify the web runtime, not just the CLI: confirm the domain runs 8.3 (the code requires 8.1+, so the old 7.2 would fail), and that `openssl` and `mbstring` are enabled and outbound TLS to `mail.actpsb.com:465` works. Run `composer install` with the same PHP major version.
-5. Run the authorised end-to-end test with a mailbox the owner controls, then read the message in that inbox. Record the result in the task, not in this file.
+The host has no cPanel Terminal, so nothing runs on the server except PHP serving the site. Packages are built on a workstation with `ACTP_PHP=/path/to/php ACTP_COMPOSER=/path/to/composer.phar python3 scripts/build_packages.py`, which writes three ZIPs to `dist/` (git-ignored, contain no secrets, no `.git`, tests, docs or installers; Composer dependencies are already installed in the backend ZIP):
+
+- `actpsb-public.zip`: site pages, `assets/`, `robots.txt`, `contact-submit.php`
+- `actpsb-backend.zip`: `src/`, `vendor/` (PHPMailer 6.12.0, locked), `licenses/`
+- `actpsb-private.zip`: `config.php` placeholder (password placeholder only)
+
+Steps in cPanel File Manager:
+
+1. Upload and Extract `actpsb-public.zip` into `/home/arriscom/public_html/actpsb.com`.
+2. Upload and Extract `actpsb-backend.zip` into `/home/arriscom/actpsb-backend` (outside `public_html`).
+3. Upload and Extract `actpsb-private.zip` into `/home/arriscom/actpsb-private` (keep the folder at 0700). Open `config.php` in the editor, replace only `CONFIRM_SET_PASSWORD_ON_SERVER_ONLY` with the mailbox password, confirm `allowed_origins` matches the live origin, save, and set the file to 0600. Do not paste the password in chat, tickets or git.
+4. In MultiPHP Manager confirm actpsb.com runs PHP 8.3 and in the PHP extensions list confirm `openssl` and `mbstring` are enabled. There is no browser-accessible installer and none is needed.
+5. Run the authorised end-to-end test with a mailbox the owner controls and read the message in that inbox. Record the result in the task, not in this file.
+
+Until step 3 is done the endpoint answers "not available" and sends nothing. Local tests (`PackageTests`) extract the built ZIPs into a simulated `/home/arriscom` layout and verify fail-closed as shipped and acceptance after a synthetic config edit; the real host has not been touched.
 
 ## Deployment configuration checklist (open items)
 
@@ -78,7 +88,7 @@ These are not confirmed and are not invented here:
 - [ ] Confirm live origin (scheme and host, www or not) for `allowed_origins`; also unlocks canonical URLs and sitemap (see `seo.md`)
 - [x] Mailbox, SMTP host/port/TLS and recipient: confirmed by owner (see above); password to be set by the owner on the server
 - [x] Home path `/home/arriscom` (owner-confirmed)
-- [ ] Whether SSH/Terminal and Composer exist on the host (owner to confirm); if not, run `composer install --no-dev` on a workstation and upload `vendor/`
+- [x] No cPanel Terminal (owner-confirmed); vendor/ ships inside the backend ZIP
 - [ ] Verify PHP 8.3 and extensions on the live runtime (PHP 8.3 is owner-reported only)
 - [ ] DNS authentication for the sending domain (SPF, DKIM, DMARC), owner action
 - [ ] Privacy notice wording and retention statement from ACTP. None is published; do not add placeholder claims.

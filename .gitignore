@@ -6,3 +6,4 @@ backend/vendor/
 backend/config/config.php
 *.env
 .env
+dist/

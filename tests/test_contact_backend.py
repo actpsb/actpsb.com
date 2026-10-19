@@ -551,6 +551,81 @@ class DeploymentLayoutTests(unittest.TestCase):
             shutil.rmtree(tmp, ignore_errors=True)
 
 
+@unittest.skipUnless(PHP and VENDOR.is_file(), SKIP)
+class PackageTests(unittest.TestCase):
+    def test_zips_install_into_owner_layout_and_work_without_composer(self):
+        import zipfile
+        cphar = os.environ.get("ACTP_COMPOSER") or shutil.which("composer")
+        if not cphar:
+            self.skipTest("composer unavailable for building packages")
+        sys.path.insert(0, str(ROOT / "scripts"))
+        import build_packages
+        tmp = Path(tempfile.mkdtemp(prefix="actp-pkg-"))
+        sb = Sandbox(tmp)
+        proc = None
+        try:
+            build_packages.build(tmp / "dist")
+            home = tmp / "home" / "arriscom"
+            docroot = home / "public_html" / "actpsb.com"
+            for name, dest in (("public", docroot), ("backend", home / "actpsb-backend"), ("private", home / "actpsb-private")):
+                dest.mkdir(parents=True)
+                zipfile.ZipFile(tmp / "dist" / f"actpsb-{name}.zip").extractall(dest)
+            (home / "actpsb-private").chmod(0o700)
+            names = [n for z in (tmp / "dist").glob("*.zip") for n in zipfile.ZipFile(z).namelist()]
+            self.assertIn("vendor/autoload.php", names)
+            self.assertFalse([n for n in names if n.startswith((".git", "tests/", "dist/", "docs/")) or n.endswith((".env", ".pem", ".key"))])
+            self.assertFalse([n for n in names if "composer.phar" in n or "installer" in n.lower()])
+            self.assertIn("contact-submit.php", names)
+            port = free_port()
+
+            def run(expect_status, expect_msg=None):
+                nonlocal proc
+                if proc:
+                    proc.terminate()
+                    proc.wait(5)
+                env = {k: v for k, v in os.environ.items() if not k.startswith("ACTP_")}
+                proc = subprocess.Popen([PHP, "-S", f"127.0.0.1:{port}", "-t", str(docroot)], env=env,
+                                        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, cwd=str(docroot))
+                for _ in range(200):
+                    try:
+                        socket.create_connection(("127.0.0.1", port), timeout=0.2).close()
+                        break
+                    except OSError:
+                        time.sleep(0.05)
+                req = urllib.request.Request(
+                    f"http://127.0.0.1:{port}/contact-submit.php", data=urllib.parse.urlencode(GOOD).encode(),
+                    headers={"Origin": f"http://127.0.0.1:{port}", "Accept": "application/json",
+                             "Content-Type": "application/x-www-form-urlencoded"}, method="POST")
+                try:
+                    r = OPENER.open(req, timeout=30)
+                except urllib.error.HTTPError as e:
+                    r = e
+                self.assertEqual(r.status, expect_status)
+                return json.loads(r.read())
+
+            # as shipped: placeholder password => fails closed, nothing sent
+            self.assertEqual(run(503)["status"], "unavailable")
+            self.assertEqual(sb.messages, [])
+            cfgp = home / "actpsb-private" / "config.php"
+            cfg = cfgp.read_text()
+            self.assertIn("contact@actpsb.com", cfg)
+            self.assertIn("CONFIRM_SET_PASSWORD_ON_SERVER_ONLY", cfg)
+            # simulate the owner's File Manager edit with synthetic sandbox values
+            cfgp.write_text("<?php return ['smtp_host'=>'localhost','smtp_port'=>%d,'smtp_secure'=>'tls','smtp_user'=>'%s',"
+                            "'smtp_pass'=>'%s','smtp_ca_file'=>'%s','mail_from'=>'mailbox@sandbox.test',"
+                            "'mail_to'=>'inbox@sandbox.test','allowed_origins'=>['http://127.0.0.1:%d']];"
+                            % (sb.port, sb.user, sb.password, sb.crt, port))
+            self.assertEqual(run(200)["status"], "accepted")
+            self.assertEqual(len(sb.messages), 1)
+            self.assertTrue((home / "actpsb-private" / "var").is_dir())
+        finally:
+            if proc:
+                proc.terminate()
+                proc.wait(5)
+            sb.close()
+            shutil.rmtree(tmp, ignore_errors=True)
+
+
 class PublicSurfaceTests(unittest.TestCase):
     def test_no_secrets_or_private_files_tracked(self):
         try:

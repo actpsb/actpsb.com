@@ -49,7 +49,36 @@ Editorial colour distribution guideline: approximately 70–80% white/off-white/
 
 ## Typography and spacing
 
-Manrope headings, Inter body, font-display swap, preconnect only if remote font loading is chosen, robust system sans fallbacks and no render-blocking imports. Hero clamp(42px, 6vw, 80px), section titles clamp(32px, 4vw, 56px), card titles 22–28px, body 16–18px, labels 12–14px with sufficient contrast. Scale 8/16/24/32/48/64/80/96/120px; content max 1280px, reading measure ~680px. Vertical section padding 48–72 mobile, 72–96 tablet, 96–128 desktop. Break based on composition rather than arbitrary devices; no overflow at 320px.
+The following roles and tokens replace the preliminary ranges. Keep the 1280px content cap, approximately 680px reading measure, and no horizontal overflow at 320px.
+
+### Type implementation contract
+
+Use Manrope 500/600/700 for headings and Inter 400/500/600 for text. Prefer locally hosted, licensed WOFF2 subsets when available, with `@font-face` and `font-display: swap`; declare actual weight descriptors to avoid synthetic bold. Do not commit downloaded font files without checking redistribution rights. If local fonts are unavailable, use a provider stylesheet link with `display=swap`, preconnect to stylesheet and font origins (`crossorigin` on the font origin), and avoid CSS `@import`. Preload only a locally hosted above-the-fold Manrope face if measurement warrants it. Fallback immediately to `Arial, Helvetica, sans-serif` for headings and `system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif` for body. Test wrapping in both states, without hiding text during loading.
+
+| Role | Fluid size | Weight / line-height | Tracking / measure |
+|---|---|---|---|
+| Hero H1 | `clamp(42px, 5.6vw, 80px)` | 700 / 1.08–1.14 | `-0.035em`; approximately 12–15ch |
+| Section H2 | `clamp(32px, 3.8vw, 56px)` | 600–700 / 1.14–1.22 | `-0.025em`; approximately 18–22ch |
+| Subheading H3 | `clamp(22px, 2vw, 28px)` | 600 / 1.25–1.35 | `-0.015em`; no fixed-height cards |
+| Lead | `clamp(17px, 1.4vw, 18px)` | 400 / 1.6 | normal; max 680px |
+| Body | `clamp(16px, 1.2vw, 18px)` | 400 / 1.6–1.7 | normal; max 680px |
+| Eyebrow / metadata | `clamp(12px, 1vw, 14px)` | 600 / 1.4–1.5 | `0.06em` optional; short labels only |
+
+Interactive labels are at least 16px/1.4; 12–14px is reserved for short nonessential metadata. Keep paragraph measure roughly 45–75 characters where space permits; at 320px accept shorter lines rather than shrinking type. Use 16–24px between paragraphs and from headings to copy, 16px between eyebrow and heading. Allow 200% text zoom and font-size overrides: avoid fixed-height text containers, forced line breaks and nowrap prose; wrap long URLs instead of shrinking text.
+
+### Layout tokens and responsive composition
+
+Use the 8px rhythm: `--space-1: 8px`, `--space-2: 16px`, `--space-3: 24px`, `--space-4: 32px`, `--space-6: 48px`, `--space-8: 64px`, `--space-10: 80px`, `--space-12: 96px`, `--space-15: 120px`. Reserve 4px for optical adjustment, not major layout. Set `--container-max: 1280px` and `--reading-max: 680px`. Container inner width is `min(1280px, 100% - 2 * gutter)` with auto inline margins; reading blocks use width 100% and max-width 680px. Gutters: 16px below 480px, 24px at 480px, 32px at 768px, 40px at 1280px. At 320px the inner width is 288px. Use `minmax(0, 1fr)` for flexible columns and constrain images to their containers.
+
+Mobile-first section block padding: 48px at 320–479px, 64px at 480–767px, 80px at 768–1023px, 96px at 1024–1279px, 120px at 1280px and wider. Adjacent backgrounds may alternate without redundant spacer blocks. Column gaps: 24px mobile, 32px tablet, 48–64px desktop. Use Grid for major columns and Flexbox for CTA rows.
+
+Break at 480/768/1024/1280px only when composition needs it. Below 768px stack editorial pairs with text before decorative imagery in DOM order; let CTA rows wrap and provide 44px minimum target height. At 768–1023px retain stacking unless both text measure and imagery have room. At 1024px use an asymmetric approximately 55/45 hero; alternate image placement visually without changing reading order. Above 1280px cap inner content while background fields span the viewport. Avoid viewport-width elements plus gutters. Check 320, 375, 768, 1024 and 1440px and 200% zoom for heading/menu/button wrapping, imagery clipping, focus visibility and horizontal overflow.
+
+Homepage composition follows `architecture.md`: bounded floating navigation; off-white hero with H1 “ACTP Sdn Bhd”, conservative NSX role copy, two real route CTAs and optional logo-derived abstract visual; airy company introduction with a reading-width copy column; forest services field showing verified role information in editorial rows, not an unverified service catalogue; restrained NSX explainer with official source link; optional clearly labelled illustrative process in horizontal desktop/vertical mobile sequence; honest insights empty state; teal contact moment with opaque high-contrast text panel and real contact route; dark footer. Keep one H1 and sequential H2 headings. Do not visually reverse DOM reading order.
+
+### Motion and progressive enhancement
+
+Under `prefers-reduced-motion: reduce`, remove smooth scrolling, reveal transforms and animated navigation/imagery, but keep immediate state changes and visible focus. Essential text and links remain visible without JavaScript; apply reveal classes only after enhancement initializes and restore visible state if observation fails. Never animate layout-changing font size or hijack scrolling. Rendered QA must cover fallback-font reflow, reduced motion and keyboard focus. This is a testable specification, not a claim that the current coming-soon page already meets it.
 
 ## Interaction
 

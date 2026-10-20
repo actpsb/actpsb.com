@@ -297,29 +297,33 @@ class HeroTests(unittest.TestCase):
         ctas = re.findall(r'<a class="button[^"]*" href="([^"]+)">([^<]+)</a>', self.hero())
         self.assertEqual(ctas, [("nsx-adviser.html", "Explore the adviser role"), ("about.html", "About ACTP")])
 
-    def test_copy_is_attributed_and_makes_no_unverified_claims(self):
+    def test_copy_omits_source_links_and_removed_disclaimer(self):
         text = re.sub(r"<[^>]+>", " ", self.hero()).lower()
         self.assertIn("listed by nsx as an international nominated adviser", text)
         lead = re.search(r'<p class="lead">.*?</p>', self.hero(), re.S).group(0)
         note = re.search(r'<p class="hero__note">.*?</p>', self.hero(), re.S).group(0)
         self.assertIn("listed by NSX", lead)
-        self.assertIn('href="https://www.nsx.com.au/listing/adviser-profile/130/"', lead)
+        self.assertNotIn("Source:", lead)
         self.assertIn("admission procedures", note)
-        self.assertIn('href="https://www.nsx.com.au/regulation/companies/nominated-adviser/"', note)
+        self.assertNotIn("Source:", note)
+        self.assertNotIn("https://www.nsx.com.au/", lead + note)
         self.assertNotIn("adviser-profile/130", note)
-        self.assertIn("not a licence, endorsement or promise of results", text)
+        self.assertNotIn("not a licence, endorsement or promise of results", text)
         for banned in ("coming soon", "award", "trusted by", "clients", "years of experience", "guarantee"):
             self.assertNotIn(banned, text)
 
-    def test_artwork_is_original_inline_svg_and_decorative(self):
+    def test_artwork_uses_growth_image_and_is_decorative(self):
         hero = self.hero()
-        self.assertEqual(hero.count("<svg"), 1)
+        self.assertEqual(hero.count("<img"), 1)
+        self.assertIn('<img src="assets/hero-growth.png"', hero)
+        self.assertIn('width="1635" height="962"', hero)
+        self.assertIn('alt=""', hero)
         self.assertRegex(hero, r'class="hero__art" aria-hidden="true"')
-        self.assertNotIn("<img", hero)
-        self.assertNotRegex(hero, r"unsplash|pexels|shutterstock|stock")
+        self.assertNotIn("<svg", hero)
 
     def test_hero_layout_and_motion_css(self):
         css = all_css()
+        self.assertRegex(css, r"\.hero__art img\s*\{[^}]*max-height:\s*360px")
         self.assertRegex(css, r"\.hero__grid\s*\{[^}]*grid-template-columns:\s*minmax\(0, 1fr\)")
         self.assertRegex(css, r"min-width: 1024px\)\s*\{[^}]*\.hero__grid\s*\{[^}]*11fr[^}]*9fr")
         self.assertRegex(css, r"\.js \.hero__copy\s*\{[^}]*animation:")
@@ -341,12 +345,12 @@ class IntroTests(unittest.TestCase):
         self.assertRegex(sec, r'<a class="button" href="about.html">About ACTP</a>')
         self.assertTrue((ROOT / "about.html").is_file())
 
-    def test_distinguishes_actp_from_arris_with_nsx_sources(self):
+    def test_distinguishes_actp_from_arris_without_source_links(self):
         sec = self.section()
         text = re.sub(r"<[^>]+>", " ", sec)
         self.assertIn("International Nominated Adviser, a member since 2022", text)
-        self.assertIn("href=\"https://www.nsx.com.au/listing/adviser-list/\"", sec)
-        self.assertIn("href=\"https://www.nsx.com.au/listing/adviser-profile/130/\"", sec)
+        self.assertNotIn("Source:", sec)
+        self.assertNotIn('href="https://www.nsx.com.au/', sec)
         self.assertIn("describes ACTP Sdn. Bhd. as a wholly owned subsidiary of Arris Holdings Berhad", text)
         self.assertIn("Arris is a separate company", text)
         self.assertIn("not presented here as ACTP's own", text)
@@ -357,12 +361,17 @@ class IntroTests(unittest.TestCase):
                        "clients", "guarantee", "@", "+603"):
             self.assertNotIn(banned, low)
 
-    def test_artwork_decorative_inline_svg_and_responsive_css(self):
+    def test_artwork_uses_teamwork_image_and_responsive_css(self):
         sec = self.section()
-        self.assertEqual(sec.count("<svg"), 1)
+        self.assertEqual(sec.count("<img"), 1)
+        self.assertIn('src="assets/hero-teammwork.png"', sec)
+        self.assertIn('width="1355" height="1161"', sec)
+        self.assertIn('alt=""', sec)
+        self.assertTrue((ROOT / "assets/hero-teammwork.png").is_file())
         self.assertRegex(sec, r'class="intro__art" aria-hidden="true"')
-        self.assertNotIn("<img", sec)
+        self.assertNotIn("<svg", sec)
         css = all_css()
+        self.assertRegex(css, r"\.intro__art img\s*\{[^}]*width:\s*100%;[^}]*height:\s*auto;")
         self.assertRegex(css, r"min-width: 1024px\)\s*\{[^}]*\.intro__grid\s*\{[^}]*5fr[^}]*7fr")
         self.assertRegex(css, r"\.intro__grid\s*\{[^}]*grid-template-columns:\s*minmax\(0, 1fr\)")
 

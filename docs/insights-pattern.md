@@ -1,8 +1,32 @@
-# Insights: empty state and future article pattern
+# Insights: company logos and future article pattern
 
 ## Current state
 
-The homepage "Insights" section (`index.html`, `.insights`) shows a plain empty state: "There are no published insights available yet." `insights.html` shows the same empty state under its own H1, with links to `nsx-adviser.html` and `index.html`. The homepage section holds no article cards, images, dates, categories, "Read more" links or promised publication schedule. Its links go to `nsx-adviser.html` and `insights.html`. The decorative linework is `aria-hidden`; the empty-state panel is a `role="status"` region.
+The homepage Success Stories section presents Nuren Group and Actcelerate International Group Limited as responsive transaction cards. Its content is unchanged by the Insights expansion. There is no carousel, video or PDF link in that section. The supporting Nuren admission PDF is retained as source material for the milestone dates, rather than linked from a public page.
+
+At ACTP's request on 22 October 2026, `insights.html` now presents four company profiles rather than an article empty state. Nuren and Arris appear under Milestones & Appointments; Actcelerate and Sydney Sunny Glass appear under Nominated Adviser Relationships. Cards distinguish a listing milestone from a later adviser appointment, use supplied logos and source links where verified, and do not imply ACTP caused every original listing. The grid has one column on mobile and two from 768px, and works without JavaScript. A shared contact panel closes the page.
+
+## Copy sources
+
+- Nuren's business overview follows its [corporate website](https://nurengroup.com/), without repeating unverified market-leadership claims.
+- The supplied `assets/documents/nuren-group-nsx-admission.pdf` is an NSX letter dated 2 August 2024: admission was to occur that day, while first quotation was scheduled for 6 August 2024. The homepage uses the quotation date, also identified in Nuren's commencement announcement, rather than conflating these milestones. The statement is historical, not a claim of current listing status; NSX's NRN record now records removal on 30 June 2026.
+- ACTP supplied research identifying Actcelerate International Group Limited (NSX: ACT), its focus on high-growth SMEs in Southeast Asia and Australia, and its investment sectors: financial services, information and communication technology, innovative retail and green technology. The homepage condenses that research to match Nuren's profile structure. [NSX's ACT record](https://www.nsx.com.au/marketdata/company-directory/details/ACT/) corroborates its diversified investment activity, 2 July 2018 listing date, trading code and ACTP's nominated adviser role. The earlier Ausgold identity ambiguity is resolved by ACTP's supplied Actcelerate research and replacement logo.
+- The homepage contact sentence is a short invitation covering listing exploration, market preparation and ongoing obligations; the detailed entry-requirements sentence was replaced at ACTP's request.
+- ACTP supplied `contact@actpsb.com` as the intended domain mailbox; live operation is unverified. The Contact redesign standardises public footers on NSX-listed group contact details pending an authorised inbox test (see `contact-backend.md`).
+- Arris' [announcement dated 1 November 2022](https://www.nsx.com.au/ftp/news/021741547.PDF) records ACTP's appointment after the prior adviser's resignation. It is not evidence of ACTP managing Arris' original listing. The official list and ACTP profile contain inconsistent historical listing dates, so the Insights card uses the verified appointment date instead.
+- [NSX's official list](https://www.nsx.com.au/marketdata/official-list/) identifies ACTP as adviser for Arris (AR2) and Actcelerate (ACT). Actcelerate's 2018 listing predates ACTP's September 2022 recognition; it is shown as an adviser relationship, not an ACTP-led IPO.
+- ACTP directly confirmed the Sydney Sunny Glass nominated adviser relationship, supplied the branded image, and subsequently provided [NSX's AG1 record](https://www.nsx.com.au/marketdata/company-directory/AG1/) as the corresponding company record. The Sydney-to-AG1 association and adviser role are owner-confirmed; the NSX overview verifies the issuer name Australia Sunny Glass Group Limited and delisting on 18 December 2025. The card describes the adviser role as historical and links the official record, without implying current NSX listing or an ACTP-led original admission.
+
+## Logo assets
+
+Logos live in `assets/images/`. The supplied images have been renamed according to the visible artwork:
+
+- `nuren-group-logo.png`: displayed for Nuren Group.
+- `actelerate-international-group-logo.png`: the replacement supplied by ACTP, visibly identifying Actcelerate International Group Limited; replaces the former Ausgold asset. The filename preserves the supplied spelling. The white artwork uses a dark background for visibility.
+- `sydney-sunny-glass-logo.png`: displayed for the owner-confirmed Sydney Sunny Glass adviser relationship associated by ACTP with Australia Sunny Glass Group Limited (AG1).
+- `arris-holding-logo.png`: displayed for Arris Holdings Berhad using ACTP's supplied artwork.
+
+Preserve logo proportions with contain sizing. Do not invent logos or add broken image references.
 
 ## Publishing rule
 
@@ -10,7 +34,7 @@ An article is published only with ACTP-approved copy, a named author or attribut
 
 ## Article card pattern (for when the first approved article exists)
 
-Replace the `.insights__empty` panel with a list of articles; keep the section heading, `.insights__lead` is replaced by a short approved introduction.
+For future articles on `insights.html`, add a separately labelled article section and keep the page heading and company profiles. The homepage company grid remains separate.
 
 Each card is an `<article>` inside `<ul class="insights__list">` (one `<li>` per article) with these fields, in DOM order:
 
@@ -23,4 +47,4 @@ Each card is an `<article>` inside `<ul class="insights__list">` (one `<li>` per
 
 Layout: one column below 768px, two columns from 768px, three from 1280px, using `minmax(0, 1fr)`; no fixed-height cards; long titles wrap. Cards are visible without JavaScript; any reveal effect follows the `.js` progressive-enhancement and reduced-motion rules in `design-system.md`.
 
-When the first article is added, update `insights.html` the same way, remove the empty-state text and its tests, and add tests that every card link resolves to an existing file.
+When the first article is added, add tests that every article link resolves to an existing file. Company profiles must not be given fabricated article dates or authors.

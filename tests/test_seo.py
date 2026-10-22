@@ -1,9 +1,12 @@
 import re
 import unittest
+from html import unescape
 from pathlib import Path
 
+from test_site import Page
+
 ROOT = Path(__file__).resolve().parent.parent
-PAGES = ["index", "about", "services", "nsx-adviser", "insights", "contact"]
+PAGES = ["index", "about", "services", "insights", "contact"]
 # Set to the confirmed production origin to enable canonical/sitemap checks.
 ORIGIN_CONFIRMED = None
 
@@ -13,8 +16,10 @@ def read(n):
 
 
 def meta(html, attr, key):
-    m = re.search(rf'<meta {attr}="{key}" content="([^"]*)"', html)
-    return m.group(1) if m else None
+    page = Page()
+    page.feed(html)
+    matches = page.find("meta", **{attr: key})
+    return matches[0].get("content") if matches else None
 
 
 class SeoTests(unittest.TestCase):
@@ -22,7 +27,7 @@ class SeoTests(unittest.TestCase):
         seen = {"title": set(), "desc": set()}
         for n in PAGES:
             h = read(n)
-            title = re.search(r"<title>(.*?)</title>", h).group(1)
+            title = unescape(re.search(r"<title>(.*?)</title>", h).group(1))
             desc = meta(h, "name", "description")
             self.assertTrue(title and desc, n)
             self.assertLessEqual(len(title), 60, n)
@@ -33,8 +38,8 @@ class SeoTests(unittest.TestCase):
                 self.assertTrue(meta(h, "property", k), (n, k))
             seen["title"].add(title)
             seen["desc"].add(desc)
-        self.assertEqual(len(seen["title"]), 6)
-        self.assertEqual(len(seen["desc"]), 6)
+        self.assertEqual(len(seen["title"]), len(PAGES))
+        self.assertEqual(len(seen["desc"]), len(PAGES))
 
     def test_origin_dependent_tags_absent_until_confirmed(self):
         if ORIGIN_CONFIRMED:

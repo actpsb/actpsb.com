@@ -10,9 +10,10 @@ namespace Actp\Contact;
 final class Page
 {
     public const FIELDS = [
-        'name' => 'Name',
-        'email' => 'Email address',
+        'name' => 'Full Name',
+        'email' => 'Email Address',
         'organisation' => 'Organisation (optional)',
+        'category' => 'Nature of Enquiry',
         'message' => 'Message',
     ];
 
@@ -57,7 +58,8 @@ final class Page
             $status .= '<p class="form-status__ref">Reference: ' . self::h($requestId) . '</p>';
         }
         $status .= '</div>';
-        $region = $status . ($showForm ? self::form($values, $errors) : '');
+        $region = ($state === 'unavailable' ? '<h3 class="form-availability-title">Online Enquiries Temporarily Unavailable</h3>' : '')
+            . $status . ($showForm ? self::form($values, $errors) : '');
         $out = preg_replace_callback(
             '/<!--ACTP:FORM-->.*?<!--\/ACTP:FORM-->/s',
             static fn() => "<!--ACTP:FORM-->\n" . $region . "\n<!--/ACTP:FORM-->",
@@ -87,10 +89,16 @@ final class Page
             . (isset($errors[$k]) ? ' aria-invalid="true"' : '')
             . ' aria-describedby="' . (isset($errors[$k]) ? 'error-' . $k . ' ' : '') . ($hint !== '' ? $hint : '') . '"';
         $d2 = static fn(string $k, string $hint = ''): string => str_replace(' aria-describedby=""', '', $d($k, trim($hint)));
+        $options = '<option value="">Select an enquiry type</option>';
+        foreach (Validator::CATEGORIES as $category) {
+            $options .= '<option value="' . self::h($category) . '"'
+                . (($values['category'] ?? '') === $category ? ' selected' : '') . '>' . self::h($category) . '</option>';
+        }
         return self::formOpen()
             . $f('name', '<input type="text"' . $d2('name') . ' autocomplete="name" maxlength="' . Validator::MAX_NAME . '" required value="' . $v('name') . '">')
             . $f('email', '<input type="email"' . $d2('email') . ' autocomplete="email" maxlength="' . Validator::MAX_EMAIL . '" required value="' . $v('email') . '">')
             . $f('organisation', '<input type="text"' . $d2('organisation') . ' autocomplete="organization" maxlength="' . Validator::MAX_ORG . '" value="' . $v('organisation') . '">')
+            . $f('category', '<select' . $d2('category') . ' required>' . $options . '</select>')
             . $f('message', '<textarea' . $d2('message', 'message-hint') . ' rows="7" minlength="' . Validator::MIN_MESSAGE . '" maxlength="' . Validator::MAX_MESSAGE . '" required>' . $v('message') . '</textarea>'
                 . '<p class="field__hint" id="message-hint">' . Validator::MIN_MESSAGE . ' to ' . Validator::MAX_MESSAGE . ' characters.</p>')
             . self::formClose();
@@ -105,6 +113,6 @@ final class Page
     {
         return '<div class="field field--trap" aria-hidden="true"><label for="field-website">Leave this field empty</label>'
             . '<input type="text" id="field-website" name="website" tabindex="-1" autocomplete="off" value=""></div>'
-            . '<button class="button" type="submit">Send enquiry</button></form>';
+            . '<button class="button" type="submit">Send Enquiry <span aria-hidden="true">&#8599;</span></button></form>';
     }
 }

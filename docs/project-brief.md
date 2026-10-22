@@ -814,7 +814,6 @@ Suggested structure:
   index.html
   about.html
   services.html
-  nsx-adviser.html
   insights.html
   contact.html
 

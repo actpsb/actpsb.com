@@ -9,7 +9,7 @@ Verified locally by `tests/test_contact_backend.py` against `php -S` and a local
 - acceptance over STARTTLS and over implicit TLS; From is the configured mailbox, recipient is the configured value, the visitor address is Reply-To only
 - rejected authentication, rejected recipient, unreachable server, untrusted certificate and host-name mismatch all give a generic "not sent" response and no success
 - fail-closed behaviour with no configuration and with the placeholder template
-- validation, header-injection rejection, size, method, content-type and same-origin checks, honeypot
+- validation, a required five-value enquiry category allowlist, header-injection rejection, size, method, content-type and same-origin checks, honeypot
 - per-address and global rate limits, file-locked, including concurrent requests and the proxy trust boundary
 - private log lines hold only a time, a request id and a fixed code
 
@@ -17,11 +17,15 @@ Not verified, because it has not been authorised or configured: a real cPanel ac
 
 ## Behaviour
 
-`contact.html` fails closed. By default it shows an unavailable notice (`#form-availability`) and holds the real `<form method="post" action="contact-submit.php">` inertly inside `<template id="enquiry-form-template">`, so no control is rendered, focusable or submittable.
+`contact.html` holds the real `<form method="post" action="contact-submit.php">` inside `<template id="enquiry-form-template">`. JavaScript reveals its fields immediately, even in a local preview without SMTP configuration. Without JavaScript, the availability notice (`#form-availability`) links to the server-rendered form. Sending still fails closed on the backend when configuration is missing, invalid or explicitly disabled.
 
-- Preflight: `GET contact-submit.php?preflight=1` returns `{"available": true}` (200) only when private configuration loads and validates, else `{"available": false}` (503). It never contacts the mail server, sends no visitor data and returns no configuration value. Valid configuration does not prove the mail server will accept mail.
-- With JavaScript, `assets/js/contact-form.js` runs the preflight (8 s timeout) and swaps the template in only on `available: true`. Any error, timeout or other response leaves the notice. Submission then uses `fetch`, shows the server's result in `#form-status` and moves focus to it; field errors are linked and set `aria-invalid`. The script never decides success itself.
+- Preflight: `GET contact-submit.php?preflight=1` returns `{"available": true}` (200) when private configuration loads, validates and does not explicitly disable the form, else `{"available": false}` (503). Existing configurations without `form_enabled` remain enabled for backward compatibility. Setting `form_enabled: false` or `ACTP_FORM_ENABLED=0` disables submission; the example template is explicitly disabled until an authorised end-to-end test. Preflight never contacts the mail server, sends visitor data or reveals configuration values; it is not a live health check.
+- With JavaScript, `assets/js/contact-form.js` immediately replaces the notice with the form fields; displaying the form does not depend on SMTP availability. Submission uses `fetch`, shows the server's result in `#form-status` and moves focus to it; field errors are linked and set `aria-invalid`. The script never decides success itself. The preflight endpoint remains available for diagnostics.
 - Without JavaScript, the notice links to `contact-submit.php?form=1`. That route renders the contact page with the form when configured, or with the 503 unavailable alert and no form when not. Native POSTs render the result inside the normal contact page (`noindex`).
+
+The required Nature of Enquiry choices are NSX Nominated Adviser, IPO & Capital Markets, Corporate Advisory, Mergers & Acquisitions and General Enquiry. The validated choice is included in the plain-text UTF-8 email, never used to select a recipient or create a visitor-controlled header. Native error responses preserve the selected option. Successful SMTP acceptance returns "Thank you. Your enquiry has been submitted successfully." This does not claim inbox arrival or human review. Network/transport uncertainty asks visitors to use the published channels before resubmitting; it does not claim nothing was delivered.
+
+Public contact details now consistently use NSX's published group email `contact@arris.com.my`, phone `+60 3 8076 3063` and the Puchong address, with group attribution. The owner-supplied `contact@actpsb.com` remains the intended private SMTP mailbox, not a verified operational public channel. No existing privacy-policy page was found; the Contact page includes only a brief enquiry-purpose notice, without an invented URL or retention promise.
 
 Tests: `tests/test_contact_backend.py` `PreflightTests` (PHP-driven) and `tests/test_site.py` `test_contact_accessible_and_truthful`.
 
@@ -58,7 +62,7 @@ Everything except the public files lives outside `public_html`:
 
 ## Configuration
 
-Copy `backend/config/config.example.php` to `actpsb-private/config.php`, chmod 600, replace every value. Any key can instead come from an `ACTP_*` environment variable, which takes precedence: `ACTP_SMTP_HOST`, `ACTP_SMTP_PORT`, `ACTP_SMTP_SECURE` (`tls` or `ssl`), `ACTP_SMTP_USER`, `ACTP_SMTP_PASS`, `ACTP_MAIL_FROM`, `ACTP_MAIL_FROM_NAME`, `ACTP_MAIL_TO`, `ACTP_ALLOWED_ORIGINS`, `ACTP_TRUSTED_PROXIES`, `ACTP_STATE_DIR`, `ACTP_SMTP_CA_FILE`, and `ACTP_RATE_IP_MAX/WINDOW`, `ACTP_RATE_GLOBAL_MAX/WINDOW`. Defaults: 5 per address per 600 s, 100 overall per 3600 s.
+Copy `backend/config/config.example.php` to `actpsb-private/config.php`, chmod 600, replace every placeholder and keep `form_enabled` false until the authorised test is complete. Set it to the boolean `true` only after verification. Any key can instead come from an `ACTP_*` environment variable, which takes precedence: `ACTP_FORM_ENABLED` (`1` enables, `0` disables), `ACTP_SMTP_HOST`, `ACTP_SMTP_PORT`, `ACTP_SMTP_SECURE` (`tls` or `ssl`), `ACTP_SMTP_USER`, `ACTP_SMTP_PASS`, `ACTP_MAIL_FROM`, `ACTP_MAIL_FROM_NAME`, `ACTP_MAIL_TO`, `ACTP_ALLOWED_ORIGINS`, `ACTP_TRUSTED_PROXIES`, `ACTP_STATE_DIR`, `ACTP_SMTP_CA_FILE`, and `ACTP_RATE_IP_MAX/WINDOW`, `ACTP_RATE_GLOBAL_MAX/WINDOW`. Defaults: 5 per address per 600 s, 100 overall per 3600 s.
 
 Rules the code enforces: TLS is always on with certificate and host-name verification; plaintext SMTP and `mail()` are not available; the recipient and From come only from configuration; `allowed_origins` must be https except localhost; `trusted_proxies` stays empty unless a proxy sits directly in front of PHP, in which case only the right-most untrusted `X-Forwarded-For` hop is used.
 
@@ -78,9 +82,9 @@ Steps in cPanel File Manager:
 2. Upload and Extract `actpsb-backend.zip` into `/home/arriscom/actpsb-backend` (outside `public_html`).
 3. Upload and Extract `actpsb-private.zip` into `/home/arriscom/actpsb-private` (keep the folder at 0700). Open `config.php` in the editor, replace only `CONFIRM_SET_PASSWORD_ON_SERVER_ONLY` with the mailbox password, confirm `allowed_origins` matches the live origin, save, and set the file to 0600. Do not paste the password in chat, tickets or git.
 4. In MultiPHP Manager confirm actpsb.com runs PHP 8.3 and in the PHP extensions list confirm `openssl` and `mbstring` are enabled. There is no browser-accessible installer and none is needed.
-5. Run the authorised end-to-end test with a mailbox the owner controls and read the message in that inbox. Record the result in the task, not in this file.
+5. In a staging or maintenance environment, explicitly enable the form and run the authorised end-to-end test with a mailbox the owner controls; verify receipt in that inbox. Record the result in the task, not in this file. Enable `form_enabled` on the public site only after that test succeeds; disable it again if verification fails.
 
-Until step 3 is done the endpoint answers "not available" and sends nothing. Local tests (`PackageTests`) extract the built ZIPs into a simulated `/home/arriscom` layout and verify fail-closed as shipped and acceptance after a synthetic config edit; the real host has not been touched.
+Until configuration is valid and is not explicitly disabled, the endpoint stays unavailable and sends nothing. Existing working configurations need no new enable flag. Local tests (`PackageTests`) extract the built ZIPs into a simulated `/home/arriscom` layout and verify fail-closed as shipped and acceptance after a synthetic config edit; the real host has not been touched.
 
 ## Deployment configuration checklist (open items)
 
@@ -93,7 +97,7 @@ These are not confirmed and are not invented here:
 - [x] No cPanel Terminal (owner-confirmed); vendor/ ships inside the backend ZIP
 - [ ] Verify PHP 8.3 and extensions on the live runtime (PHP 8.3 is owner-reported only)
 - [ ] DNS authentication for the sending domain (SPF, DKIM, DMARC), owner action
-- [ ] Privacy notice wording and retention statement from ACTP. None is published; do not add placeholder claims.
+- [ ] ACTP approval of the brief enquiry-purpose privacy notice and any fuller policy/retention statement. No existing privacy-policy page was found; no policy URL or retention period is invented.
 - [ ] Whether a proxy or CDN sits in front of PHP (sets `trusted_proxies`)
 - [ ] Authorised end-to-end inbox test and its recorded outcome
 

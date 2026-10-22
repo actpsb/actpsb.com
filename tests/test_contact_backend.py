@@ -44,6 +44,7 @@ class NoRedirect(urllib.request.HTTPRedirectHandler):
 OPENER = urllib.request.build_opener(NoRedirect)
 
 GOOD = {"name": "Synthetic Tester", "email": "visitor@example.test", "organisation": "Test Org",
+    "category": "General Enquiry",
         "message": "This is a synthetic test message for the sandbox only."}
 
 
@@ -54,6 +55,7 @@ class Site:
         self.port = port
         self.origin = f"http://127.0.0.1:{port}"
         env = {
+            "ACTP_FORM_ENABLED": "1",
             "ACTP_SMTP_HOST": "localhost", "ACTP_SMTP_PORT": str(sb.port),
             "ACTP_SMTP_SECURE": "ssl" if sb.implicit_tls else "tls",
             "ACTP_SMTP_USER": sb.user, "ACTP_SMTP_PASS": sb.password, "ACTP_SMTP_CA_FILE": str(sb.crt),
@@ -128,7 +130,7 @@ class AcceptanceTests(BackendBase):
         self.assertEqual(status, 200, body)
         d = json.loads(body)
         self.assertEqual(d["status"], "accepted")
-        self.assertIn("not a confirmation", d["message"])
+        self.assertEqual(d["message"], "Thank you. Your enquiry has been submitted successfully.")
         self.assertEqual(len(self.sb.messages), 1)
         m = self.sb.messages[0]
         self.assertEqual(m["rcpts"], ["inbox@sandbox.test"])
@@ -154,7 +156,7 @@ class AcceptanceTests(BackendBase):
         self.assertIn("text/html", headers["Content-Type"])
         self.assertIn('id="form-status"', body)
         self.assertIn('role="status"', body)
-        self.assertIn("accepted by our mail service", body)
+        self.assertIn("Thank you. Your enquiry has been submitted successfully.", body)
         self.assertIn("<h1", body)
         self.assertIn('content="noindex"', body)
         self.assertNotIn("<form", body)
@@ -177,7 +179,7 @@ class FailureTests(BackendBase):
         self.assertEqual(status, 502)
         d = json.loads(body)
         self.assertEqual(d["status"], "failed")
-        self.assertIn("Nothing has been delivered", d["message"])
+        self.assertIn("could not confirm", d["message"])
         self.assertEqual(self.sb.messages, [])
         self.assertGreaterEqual(self.sb.auth_failures, 1)
         for leak in ("wrong-synthetic-pass", "535", "Authentication", "localhost", str(self.sb.port)):
@@ -217,7 +219,7 @@ class FailureTests(BackendBase):
         s = self.start(ACTP_SMTP_PASS="wrong-synthetic-pass")
         status, _, body = s.post(GOOD, json_accept=False)
         self.assertEqual(status, 502)
-        self.assertIn("was not sent", body)
+        self.assertIn("could not confirm", body)
         self.assertIn('role="alert"', body)
         self.assertNotRegex(body.lower(), r"message sent|thank you|accepted by our mail service")
         self.assertIn('value="visitor@example.test"', body)  # input preserved, escaped
@@ -225,7 +227,7 @@ class FailureTests(BackendBase):
 
 class UnconfiguredTests(BackendBase):
     BLANK = dict(ACTP_SMTP_HOST="", ACTP_SMTP_PORT="", ACTP_SMTP_USER="", ACTP_SMTP_PASS="", ACTP_MAIL_FROM="",
-                 ACTP_MAIL_TO="", ACTP_ALLOWED_ORIGINS="", ACTP_SMTP_CA_FILE="", ACTP_STATE_DIR="")
+                 ACTP_MAIL_TO="", ACTP_ALLOWED_ORIGINS="", ACTP_SMTP_CA_FILE="", ACTP_STATE_DIR="", ACTP_FORM_ENABLED="")
 
     def test_no_config_fails_closed(self):
         s = self.start(**self.BLANK)
@@ -233,7 +235,7 @@ class UnconfiguredTests(BackendBase):
         self.assertEqual(status, 503)
         d = json.loads(body)
         self.assertEqual(d["status"], "unavailable")
-        self.assertIn("not available", d["message"])
+        self.assertIn("currently unavailable", d["message"])
         self.assertEqual(self.sb.messages, [])
         self.assertNotRegex(body.lower(), r"accepted|thank you|message sent")
 
@@ -268,7 +270,7 @@ class UnconfiguredTests(BackendBase):
         s = self.start(**self.BLANK)
         status, _, body = s.post(GOOD, json_accept=False, origin=False)
         self.assertEqual(status, 503)
-        self.assertIn("not available yet", body)
+        self.assertIn("currently unavailable", body)
         self.assertIn('role="alert"', body)
         self.assertNotIn("<form", body)
 
@@ -314,11 +316,25 @@ class PreflightTests(BackendBase):
         self.assertEqual(self.sb.messages, [])
         self.assertNotRegex(body, r"(?i)smtp|pass|host|mailbox|sandbox")
 
+    def test_existing_configuration_without_enable_flag_still_works(self):
+        site = self.start(ACTP_FORM_ENABLED="")
+        self.assertEqual(self.get(site, "/contact-submit.php?preflight=1")[0], 200)
+        self.assertEqual(self.get(site, "/contact-submit.php?form=1")[0], 200)
+        self.assertEqual(site.post(GOOD)[0], 200)
+        self.assertEqual(len(self.sb.messages), 1)
+
+    def test_configured_but_disabled_form_fails_closed(self):
+        site = self.start(ACTP_FORM_ENABLED="0")
+        self.assertEqual(self.get(site, "/contact-submit.php?preflight=1")[0], 503)
+        self.assertEqual(self.get(site, "/contact-submit.php?form=1")[0], 503)
+        self.assertEqual(site.post(GOOD)[0], 503)
+        self.assertEqual(self.sb.messages, [])
+
     def test_form_route_unconfigured_shows_notice_and_no_form(self):
         s = self.start(**self.BLANK)
         status, _, body = self.get(s, "/contact-submit.php?form=1")
         self.assertEqual(status, 503)
-        self.assertIn("not available yet", body)
+        self.assertIn("currently unavailable", body)
         self.assertIn('role="alert"', body)
         self.assertNotIn("<form", body)
         self.assertNotIn("enquiry-form-template", body)
@@ -332,7 +348,7 @@ class PreflightTests(BackendBase):
         self.assertNotIn('role="alert"', body)
         self.assertNotIn("Reference:", body)
         self.assertNotIn("form-availability", body.split("<!--ACTP:FORM-->")[1].split("<!--/ACTP:FORM-->")[0])
-        self.assertIn('<main id="main" tabindex="-1">', body)
+        self.assertIn('<main id="main" class="contact-page" tabindex="-1">', body)
 
     def test_other_get_still_405(self):
         s = self.start()
@@ -357,6 +373,36 @@ class ValidationTests(BackendBase):
         self.check({**GOOD, "message": "x" * 5001}, "message")
         self.check({**GOOD, "name": "n" * 101}, "name")
         self.check({**GOOD, "message": "ok message\x00with nul"}, "message")
+
+    def test_category_is_required_and_allowlisted(self):
+        self.start()
+        for category in ("", "Unknown", "General Enquiry\r\nBcc: attacker@example.test"):
+            self.check({**GOOD, "category": category}, "category")
+        self.check({key: value for key, value in GOOD.items() if key != "category"}, "category")
+        raw = urllib.parse.urlencode({key: value for key, value in GOOD.items() if key != "category"})
+        response, _, body = self.site.post(None, raw=(raw + "&category%5B%5D=General+Enquiry").encode())
+        self.assertEqual(response, 422)
+        self.assertIn("category", json.loads(body)["errors"])
+
+    def test_all_categories_are_accepted_and_included_in_email(self):
+        site = self.start()
+        for category in ("NSX Nominated Adviser", "IPO & Capital Markets", "Corporate Advisory",
+                         "Mergers & Acquisitions", "General Enquiry"):
+            response, _, body = site.post({**GOOD, "category": category})
+            self.assertEqual(response, 200, body)
+        self.assertEqual(len(self.sb.messages), 5)
+        from email import policy
+        from email.parser import Parser
+        for message, category in zip(self.sb.messages, ("NSX Nominated Adviser", "IPO & Capital Markets",
+                                                        "Corporate Advisory", "Mergers & Acquisitions", "General Enquiry")):
+            parsed = Parser(policy=policy.default).parsestr(message["data"])
+            self.assertIn("Nature of enquiry: " + category, parsed.get_content())
+
+    def test_category_is_preserved_after_native_validation_error(self):
+        site = self.start()
+        response, _, body = site.post({**GOOD, "email": "bad", "category": "Mergers & Acquisitions"}, json_accept=False)
+        self.assertEqual(response, 422)
+        self.assertIn('value="Mergers &amp; Acquisitions" selected', body)
 
     def test_non_scalar_fields_rejected(self):
         s = self.start()
@@ -524,7 +570,7 @@ class DeploymentLayoutTests(unittest.TestCase):
             (home / "actpsb-private" / "config.php").write_text(
                 "<?php return ['smtp_host'=>'localhost','smtp_port'=>%d,'smtp_secure'=>'tls','smtp_user'=>'%s',"
                 "'smtp_pass'=>'%s','smtp_ca_file'=>'%s','mail_from'=>'mailbox@sandbox.test',"
-                "'mail_to'=>'inbox@sandbox.test','allowed_origins'=>['http://127.0.0.1:%d']];"
+                "'mail_to'=>'inbox@sandbox.test','form_enabled'=>true,'allowed_origins'=>['http://127.0.0.1:%d']];"
                 % (sb.port, sb.user, sb.password, sb.crt, port))
             env = {k: v for k, v in os.environ.items() if not k.startswith("ACTP_")}
             proc = subprocess.Popen([PHP, "-S", f"127.0.0.1:{port}", "-t", str(docroot)], env=env,
@@ -576,9 +622,10 @@ class PackageTests(unittest.TestCase):
             self.assertFalse([n for n in names if n.startswith((".git", "tests/", "dist/", "docs/")) or n.endswith((".env", ".pem", ".key"))])
             self.assertFalse([n for n in names if "composer.phar" in n or "installer" in n.lower()])
             self.assertIn("contact-submit.php", names)
+            self.assertTrue((docroot / "favicon.ico").is_file())
             port = free_port()
 
-            def run(expect_status, expect_msg=None):
+            def run(expect_status):
                 nonlocal proc
                 if proc:
                     proc.terminate()
@@ -613,7 +660,7 @@ class PackageTests(unittest.TestCase):
             # simulate the owner's File Manager edit with synthetic sandbox values
             cfgp.write_text("<?php return ['smtp_host'=>'localhost','smtp_port'=>%d,'smtp_secure'=>'tls','smtp_user'=>'%s',"
                             "'smtp_pass'=>'%s','smtp_ca_file'=>'%s','mail_from'=>'mailbox@sandbox.test',"
-                            "'mail_to'=>'inbox@sandbox.test','allowed_origins'=>['http://127.0.0.1:%d']];"
+                            "'mail_to'=>'inbox@sandbox.test','form_enabled'=>true,'allowed_origins'=>['http://127.0.0.1:%d']];"
                             % (sb.port, sb.user, sb.password, sb.crt, port))
             self.assertEqual(run(200)["status"], "accepted")
             self.assertEqual(len(sb.messages), 1)

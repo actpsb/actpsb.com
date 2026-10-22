@@ -11,6 +11,13 @@ final class Validator
     public const MAX_EMAIL = 254;
     public const MIN_MESSAGE = 10;
     public const MAX_MESSAGE = 5000;
+    public const CATEGORIES = [
+        'NSX Nominated Adviser',
+        'IPO & Capital Markets',
+        'Corporate Advisory',
+        'Mergers & Acquisitions',
+        'General Enquiry',
+    ];
 
     public static function isSafeEmail(string $v): bool
     {
@@ -29,7 +36,7 @@ final class Validator
     {
         $values = [];
         $errors = [];
-        foreach (['name', 'email', 'organisation', 'message'] as $k) {
+        foreach (['name', 'email', 'organisation', 'category', 'message'] as $k) {
             $raw = $post[$k] ?? '';
             if (!is_string($raw)) {
                 $errors[$k] = 'This field was not submitted in a valid form.';
@@ -39,7 +46,7 @@ final class Validator
         }
 
         // Control characters are rejected on the raw value, before trim() could hide them.
-        foreach (['name', 'email', 'organisation'] as $k) {
+        foreach (['name', 'email', 'organisation', 'category'] as $k) {
             if (!isset($errors[$k]) && preg_match('/[\x00-\x1F\x7F]/', $values[$k]) === 1) {
                 $errors[$k] = 'This field must be on a single line without control characters.';
             }
@@ -47,7 +54,12 @@ final class Validator
         $values['name'] = trim($values['name']);
         $values['email'] = trim($values['email']);
         $values['organisation'] = trim($values['organisation']);
+        $values['category'] = trim($values['category']);
         $values['message'] = str_replace(["\r\n", "\r"], "\n", trim($values['message']));
+
+        if (!isset($errors['category']) && !in_array($values['category'], self::CATEGORIES, true)) {
+            $errors['category'] = 'Select a nature of enquiry from the list.';
+        }
 
         foreach (['name' => self::MAX_NAME, 'organisation' => self::MAX_ORG] as $k => $max) {
             if (isset($errors[$k])) {

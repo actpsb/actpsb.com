@@ -11,6 +11,7 @@ namespace Actp\Contact;
 final class Config
 {
     private const ENV_MAP = [
+        'ACTP_FORM_ENABLED' => 'form_enabled',
         'ACTP_SMTP_HOST' => 'smtp_host',
         'ACTP_SMTP_PORT' => 'smtp_port',
         'ACTP_SMTP_SECURE' => 'smtp_secure',
@@ -73,6 +74,8 @@ final class Config
         }
         $s = static fn(string $k): string => isset($in[$k]) && is_scalar($in[$k]) ? trim((string) $in[$k]) : '';
         $out = [];
+        $out['form_enabled'] = !array_key_exists('form_enabled', $in)
+            || in_array($in['form_enabled'], [true, 1, '1'], true);
 
         $host = $s('smtp_host');
         if ($host === '' || !preg_match('/^[A-Za-z0-9.-]+$/', $host)) {

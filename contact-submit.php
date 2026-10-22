@@ -18,9 +18,20 @@ header_remove('X-Powered-By');
 $autoload = $backend . '/vendor/autoload.php';
 if (!is_file($autoload)) {
     http_response_code(503);
-    header('Content-Type: text/plain; charset=utf-8');
     header('Cache-Control: no-store');
-    echo "The enquiry form is not available yet, so no message was sent.\n";
+    header('X-Content-Type-Options: nosniff');
+    if (($_GET['preflight'] ?? null) === '1') {
+        header('Content-Type: application/json; charset=utf-8');
+        echo '{"available":false}';
+    } elseif (str_contains($_SERVER['HTTP_ACCEPT'] ?? '', 'application/json')) {
+        header('Content-Type: application/json; charset=utf-8');
+        echo '{"status":"unavailable","message":"Our online enquiry form is currently unavailable. Your enquiry was not submitted. Please use the published email or telephone number."}';
+    } else {
+        header('Content-Type: text/html; charset=utf-8');
+        header('X-Robots-Tag: noindex');
+        $page = file_get_contents(__DIR__ . '/contact.html');
+        echo preg_replace('/<template id="enquiry-form-template">.*?<\/template>/s', '', $page ?: '') ?? '';
+    }
     exit;
 }
 require $autoload;

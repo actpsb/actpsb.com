@@ -50,7 +50,7 @@ document.documentElement.classList.add("js");
 // Scroll reveal. Targets stay visible unless observation starts successfully.
 (function () {
   var targets = document.querySelectorAll(
-    ".approach__step, .intro__item, .services__panel, .services__qualifier, .nsx__block, .insights__empty, .contact-cta__panel"
+    ".approach__step, .intro__item, .services__panel, .services__qualifier, .nsx__block, .contact-cta__panel"
   );
   if (!targets.length || !("IntersectionObserver" in window)) return;
   if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;

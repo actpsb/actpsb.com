@@ -10,14 +10,13 @@ if they are not on PATH. Nothing here talks to a server.
 import os
 import shutil
 import subprocess
-import sys
 import tempfile
 import zipfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-PUBLIC_FILES = ["index.html", "about.html", "services.html", "nsx-adviser.html", "insights.html",
-                "contact.html", "robots.txt", "contact-submit.php"]
+PUBLIC_FILES = ["index.html", "about.html", "services.html", "insights.html",
+                "contact.html", "robots.txt", "favicon.ico", "contact-submit.php"]
 PUBLIC_DIRS = ["assets"]
 FIXED_TIME = (2026, 1, 1, 0, 0, 0)
 
@@ -72,4 +71,3 @@ def build(dist: Path) -> dict:
 if __name__ == "__main__":
     for name, size in build(ROOT / "dist").items():
         print(f"{name}  {size} bytes")
-    sys.exit(0)

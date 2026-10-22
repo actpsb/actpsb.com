@@ -1,6 +1,6 @@
 # SEO and metadata
 
-Scope: six pages (`index`, `about`, `services`, `nsx-adviser`, `insights`, `contact`).
+Scope: five pages (`index`, `about`, `services`, `insights`, `contact`). The former standalone NSX page has been removed; NSX information remains on Home and Services.
 
 ## Per-page metadata
 
@@ -13,7 +13,7 @@ The production origin is not confirmed, and no deployment has been made. Therefo
 - No `<link rel="canonical">`, `og:url`, `og:image`, or JSON-LD `url`/`BreadcrumbList` (all need absolute URLs).
 - No `sitemap.xml` (the sitemap protocol requires absolute URLs), and `robots.txt` has no `Sitemap:` line. It allows all crawling.
 
-When the origin is confirmed, add canonical and `og:url` to each page, an absolute-URL `sitemap.xml` for the six routes, the `Sitemap:` line, and a 1200x630 `og:image` once an approved image exists. `tests/test_seo.py` fails if any of these appear before the origin is recorded in `ORIGIN_CONFIRMED`.
+When the origin is confirmed, add canonical and `og:url` to each page, an absolute-URL `sitemap.xml` for the five routes, the `Sitemap:` line, and a 1200x630 `og:image` once an approved image exists. `tests/test_seo.py` fails if any of these appear before the origin is recorded in `ORIGIN_CONFIRMED`.
 
 ## Structured data
 

@@ -1,20 +1,33 @@
-/* Layout primitives: container, reading measure, section blocks, skip link. */
+/* Layout primitives: container, section blocks, skip link. */
 .container {
   width: min(var(--container-max), 100% - 2 * var(--gutter));
   margin-inline: auto;
 }
 
-.reading { width: 100%; max-width: var(--reading-max); }
+.section {
+  padding-block: var(--section-pad);
+}
 
-.section { padding-block: var(--section-pad); }
-.section--soft { background: var(--color-soft); }
+.section--soft {
+  background: var(--color-soft);
+}
+
 .section--dark {
   background: var(--color-forest);
   color: var(--color-white);
 }
-.section--dark :is(h1, h2, h3) { color: var(--color-white); }
-.section--dark a { color: var(--color-white); }
-.section--dark :focus-visible { outline-color: var(--color-bright-teal); }
+
+.section--dark :is(h1, h2, h3) {
+  color: var(--color-white);
+}
+
+.section--dark a {
+  color: var(--color-white);
+}
+
+.section--dark :focus-visible {
+  outline-color: var(--color-bright-teal);
+}
 
 .skip-link {
   position: absolute;
@@ -25,4 +38,7 @@
   color: var(--color-white);
   transform: translateY(-200%);
 }
-.skip-link:focus { transform: none; }
+
+.skip-link:focus {
+  transform: none;
+}

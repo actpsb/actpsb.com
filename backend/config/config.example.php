@@ -3,11 +3,13 @@
  * NON-SECRET PLACEHOLDER TEMPLATE. Copy to <private dir>/config.php OUTSIDE public_html
  * (for example /home/arriscom/actpsb-private/config.php), chmod 600, then replace every
  * value. Never commit the real file. The password placeholder fails validation on purpose, so the
- * form stays unavailable until real values are set.
+ * form stays unavailable until real values are set. Keep form_enabled false until an authorised
+ * end-to-end test succeeds in a staging or maintenance environment, then explicitly enable it.
  *
  * Alternatively set the same keys as ACTP_* environment variables (see docs/contact-backend.md).
  */
 return [
+    'form_enabled' => false,
     // Authenticated SMTP of the domain mailbox. Port 587 = STARTTLS, 465 = implicit TLS.
     // Certificate and host name are always verified; plaintext SMTP is not supported.
     'smtp_host'   => 'mail.actpsb.com',

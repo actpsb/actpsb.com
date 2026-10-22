@@ -1,16 +1,18 @@
-# Contact form states (ACTP-022)
+# Contact Page Verification
 
-Local lab check, Chromium (CDP) against two `php -S` instances serving the repo root: one with no private configuration (production-like unconfigured) and one with synthetic `ACTP_*` environment values pointing at an unreachable SMTP port. No real mailbox, mail server or deployment was used, and no message was delivered. This is not a conformance claim, not a screen reader or cross-browser test, and not evidence that production contact works.
+Updated 22 October 2026 for the Contact redesign. Chromium browser checks used a real local PHP server and the existing synthetic SMTP sandbox, which captures messages locally and relays nothing. No production mailbox, credentials or deployment were used. This is not a screen-reader, cross-browser or formal accessibility conformance audit.
 
-| State | 375 and 1440 result |
+| State | Result |
 |---|---|
-| Unconfigured, JS on | Notice shown; no `form`, input, textarea or submit button in the rendered DOM |
-| Unconfigured, JS off | Same notice; "Check whether the form is available" goes to `contact-submit.php?form=1`, which renders the 503 unavailable alert and no form |
-| Configured, JS on | Preflight returns available; form revealed |
-| Configured, JS off | Notice stays (the form is inert in the template); the check link renders the form server-side, with no stray status text |
-| Configured, JS on, empty submit | `#form-status` (`role="alert"`) takes focus; three linked errors; name, email and message set `aria-invalid` |
-| Configured, JS on, valid submit, SMTP unreachable | `#form-status` takes focus with "not sent ... Nothing has been delivered"; no success |
+| Unconfigured or disabled | JavaScript reveals all fields for local preview; backend preflight, native form route and POST still fail closed. Submission does not fabricate success. |
+| Configured and enabled, JS on | Fields appear immediately with all five enquiry categories, without waiting for preflight. |
+| Empty submission | Four linked field errors for name, email, category and message; `role="alert"`, status focus and `aria-invalid` associations. |
+| Two immediate submit attempts | One POST. Button is disabled while processing and restored afterward. |
+| Accepted synthetic SMTP submission | Exact server-confirmed success message, `role="status"`, form reset, browser remains on Contact. No inbox-delivery claim. |
+| Network failure | Entered message/category retained; button restored; submission status explicitly unconfirmed, with published contact alternatives. |
+| JavaScript disabled | Static page keeps the inert template; availability link renders the native form. Invalid email preserves name/category and renders linked field errors. Corrected POST renders the success view without a form. |
+| Keyboard/mobile menu | Visible 3px input focus outline; menu opens and closes with Escape. |
 
-No horizontal overflow at 375 or 1440. `<main id="main" tabindex="-1">` and the 432x146 logo are present on the contact page.
+Both available and unavailable layouts were checked at 320, 390, 768, 1024 and 1440 pixels: no horizontal overflow; contact details stack above the form below 768 pixels. Fields and submission controls have at least 44px touch height. Desktop and mobile screenshots were reviewed. The existing header, logo and footer layout remain; public footer contact details consistently use the attributed NSX group listing.
 
-SMTP acceptance, if it occurs in production, means only that the mail server accepted the message; it is not inbox delivery. An owner-run inbox test is still outstanding (`contact-backend.md`).
+All 51 tests in `test_contact_backend` pass, including TLS acceptance/refusal, category allowlisting and array/header-injection rejection, safe native output, honeypot, same-origin, rate limits, private logs and packaged cPanel layout. Existing valid configurations without the newer enable flag remain operational; explicit disablement and missing configuration still fail closed. Six focused footer/Contact/shared-shell tests also pass. No real inbox delivery is verified. The example configuration stays explicitly disabled until an authorised staging/maintenance inbox test. See `contact-backend.md`.

@@ -31,6 +31,7 @@ TOKENS = {
     "--color-text": "#1c2926",
     "--color-muted": "#5f6e69",
     "--color-line": "#dce6e2",
+    "--color-brass": "#705b2b",
 }
 BANNED_TOOLING = [
     "package.json", "package-lock.json", "yarn.lock", "pnpm-lock.yaml",
@@ -241,7 +242,7 @@ class StructureTests(unittest.TestCase):
 
 PAGES = [
     ("index.html", "Home"), ("about.html", "About Us"), ("services.html", "Services"),
-    ("nsx-adviser.html", "NSX Adviser"), ("insights.html", "Insights"), ("contact.html", "Contact"),
+    ("insights.html", "Insights"), ("contact.html", "Contact"),
 ]
 
 
@@ -252,8 +253,10 @@ class NavTests(unittest.TestCase):
         return p
 
     def test_every_page_has_same_nav_with_current_marker(self):
+        self.assertFalse((ROOT / "nsx-adviser.html").exists())
         for name, _ in PAGES:
             html = (ROOT / name).read_text(encoding="utf-8")
+            self.assertNotIn("nsx-adviser.html", html, name)
             links = re.findall(r'<a class="nav-link[^"]*" href="([^"]+)"( aria-current="page")?>([^<]+)</a>', html)
             self.assertEqual([(h, l) for h, _, l in links], PAGES, name)
             self.assertEqual([h for h, c, _ in links if c], [name], name)
@@ -295,7 +298,7 @@ class HeroTests(unittest.TestCase):
 
     def test_two_relevant_ctas_to_local_routes(self):
         ctas = re.findall(r'<a class="button[^"]*" href="([^"]+)">([^<]+)</a>', self.hero())
-        self.assertEqual(ctas, [("nsx-adviser.html", "Explore the adviser role"), ("about.html", "About ACTP")])
+        self.assertEqual(ctas, [("services.html", "Explore our services"), ("about.html", "About ACTP")])
 
     def test_copy_omits_source_links_and_removed_disclaimer(self):
         text = re.sub(r"<[^>]+>", " ", self.hero()).lower()
@@ -342,18 +345,24 @@ class IntroTests(unittest.TestCase):
         self.assertEqual(sec.count("<h2"), 1)
         self.assertNotIn("<h1", sec)
         self.assertIn('aria-labelledby="intro-title"', sec)
+        self.assertIn("Who are we?", sec)
+        self.assertIn("Company introduction", sec)
         self.assertRegex(sec, r'<a class="button" href="about.html">About ACTP</a>')
         self.assertTrue((ROOT / "about.html").is_file())
 
     def test_distinguishes_actp_from_arris_without_source_links(self):
         sec = self.section()
-        text = re.sub(r"<[^>]+>", " ", sec)
-        self.assertIn("International Nominated Adviser, a member since 2022", text)
+        text = " ".join(re.sub(r"<[^>]+>", " ", sec).split())
+        self.assertIn("Based in Malaysia, ACTP", text)
+        self.assertIn("The Arris group provides professional services", text)
+        self.assertIn("Its roots date back to an accounting firm established in 1997", text)
+        self.assertNotIn("Nominated Adviser", text)
+        self.assertNotIn("admission requirements", text)
         self.assertNotIn("Source:", sec)
         self.assertNotIn('href="https://www.nsx.com.au/', sec)
-        self.assertIn("describes ACTP Sdn. Bhd. as a wholly owned subsidiary of Arris Holdings Berhad", text)
-        self.assertIn("Arris is a separate company", text)
-        self.assertIn("not presented here as ACTP's own", text)
+        self.assertIn("ACTP is a wholly owned subsidiary of Arris Holdings Berhad", text)
+        self.assertIn("a Malaysian company listed on NSX (AR2)", text)
+        self.assertNotIn("pending confirmation", text)
 
     def test_no_invented_people_offices_or_outcomes(self):
         low = re.sub(r"<[^>]+>", " ", self.section()).lower()
@@ -388,23 +397,26 @@ class ServicesTests(unittest.TestCase):
         self.assertEqual(sec.count("<h2"), 1)
         self.assertNotIn("<h1", sec)
         self.assertIn('aria-labelledby="services-title"', sec)
+        self.assertIn('<h2 id="services-title">What are we?</h2>', sec)
         self.assertIn('<a class="button button--light" href="services.html">View services</a>', sec)
 
-    def test_nsx_scope_is_attributed_and_generic(self):
+    def test_nsx_role_is_explained_in_client_focused_terms(self):
         sec = self.section()
-        text = re.sub(r"<[^>]+>", " ", sec)
-        for phrase in ("Admission procedures", "Directors' obligations", "NSX Rules"):
+        text = " ".join(re.sub(r"<[^>]+>", " ", sec).split())
+        for phrase in ("NSX International Nominated Adviser", "Guide your Listing",
+                   "Understand your responsibilities", "Stay supported",
+                       "NSX Rules", "Your directors remain responsible for compliance"):
             self.assertIn(phrase, text)
-        self.assertIn('href="https://www.nsx.com.au/regulation/companies/nominated-adviser/"', sec)
-        self.assertIn("not a catalogue of ACTP's engagements", text)
-        self.assertIn("not a guarantee of admission, capital raising or any outcome", text)
+        self.assertNotIn("Source:", text)
 
-    def test_arris_services_qualified_and_linked(self):
+    def test_removed_aside_and_disclaimer_and_no_unverified_promises(self):
         sec = self.section()
         text = re.sub(r"<[^>]+>", " ", sec)
-        self.assertIn('href="https://www.arris.com.my/"', sec)
-        self.assertIn("does not establish these as ACTP services", re.sub(r"\s+", " ", text))
-        for banned in ("ipo", "restructuring", "award", "clients", "years of experience"):
+        self.assertNotIn("services__qualifier", sec)
+        self.assertNotIn("services__boundary", sec)
+        self.assertNotIn("pending confirmation", text)
+        self.assertNotIn("Arris", text)
+        for banned in ("ipo", "restructuring", "award", "clients", "years of experience", "guarantee"):
             self.assertNotIn(banned, text.lower())
 
     def test_distinct_panels_not_uniform_cards(self):
@@ -435,8 +447,8 @@ class NsxSectionTests(unittest.TestCase):
         self.assertEqual(sec.count("<h2"), 1)
         self.assertNotIn("<h1", sec)
         self.assertIn('aria-labelledby="nsx-title"', sec)
-        self.assertIn('href="https://www.nsx.com.au/listing/adviser-profile/130/" rel="noopener">View the NSX listing', sec)
-        self.assertIn('href="nsx-adviser.html">Learn about the adviser role</a>', sec)
+        self.assertRegex(sec, r'href="https://www\.nsx\.com\.au/listing/adviser-profile/130/" rel="noopener">\s*View the NSX\s+listing')
+        self.assertIn('href="services.html">Understand the adviser role</a>', sec)
 
     def test_status_attributed_to_nsx_list_and_profile(self):
         sec = self.section()
@@ -484,13 +496,17 @@ class ApproachSectionTests(unittest.TestCase):
         self.assertEqual(len(re.findall(r"<h2", sec)), 1)
         self.assertNotIn("<h1", sec)
 
-    def test_explicitly_illustrative_not_asserted_methodology(self):
-        text = re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", self.section())).lower()
-        self.assertIn("illustrative", text)
-        self.assertIn("not acTP's confirmed methodology".lower(), text)
-        self.assertIn("pending confirmation by actp", text)
+    def test_client_focused_approach_without_unverified_promises(self):
+        sec = self.section()
+        text = re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", sec)).lower()
+        for phrase in ("working with actp", "readiness for an nsx listing", "practical next steps",
+                       "guide your application", "ongoing obligations under the nsx rules"):
+            self.assertIn(phrase, text)
+        self.assertIn('aria-label="ACTP\'s four-stage approach"', sec)
+        self.assertNotIn("pending confirmation", text)
+        self.assertNotIn("approach__boundary", sec)
         for banned in ["our proven", "guarantee", "we deliver", "years of experience"]:
-            self.assertNotIn(banned, text.replace("makes no promise", ""))
+            self.assertNotIn(banned, text)
 
     def test_no_js_visibility_and_reduced_motion(self):
         css = all_css()
@@ -502,7 +518,7 @@ class ApproachSectionTests(unittest.TestCase):
         self.assertIn("prefers-reduced-motion", js)
         self.assertIn("IntersectionObserver", js)
         self.assertIn("setTimeout", js)
-        for sel in (".intro__item", ".services__panel", ".nsx__block", ".insights__empty", ".contact-cta__panel"):
+        for sel in (".intro__item", ".services__panel", ".nsx__block", ".contact-cta__panel"):
             self.assertIn(sel, js)
         # Reveal class is applied by JS only, never authored in markup.
         for page in ROOT.glob("*.html"):
@@ -512,17 +528,32 @@ class ApproachSectionTests(unittest.TestCase):
 class InsightsSectionTests(unittest.TestCase):
     def section(self):
         html = (ROOT / "index.html").read_text(encoding="utf-8")
-        m = re.search(r'<section class="section insights".*?</section>', html, re.S)
+        m = re.search(r'<section class="[^"]*\binsights\b[^"]*".*?</section>', html, re.S)
         self.assertTrue(m)
         return m.group(0)
 
-    def test_genuine_empty_state_without_fabricated_content(self):
+    def test_brief_company_descriptions_with_distinct_roles(self):
         sec = self.section()
-        self.assertIn("There are no published insights available yet.", sec)
+        for name in ("Nuren Group", "Actcelerate International Group Limited"):
+            self.assertIn(name, sec)
+        self.assertIn('<h2 id="insights-title">Success Stories</h2>', sec)
+        self.assertIn("Helping business reach their next milestone.", sec)
+        text = re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", sec))
+        for phrase in ("Supporting a Malaysian digital platform's journey to the National Stock Exchange of Australia.",
+                       "Serving as nominated adviser to a diversified investment company supporting growing enterprises.",
+                       "6 August 2024", "Commenced quotation on NSX", "2 July 2018", "Listed on NSX"):
+            self.assertIn(phrase, text)
+        self.assertEqual(sec.count("Listed on the NSX:"), 2)
+        self.assertNotIn("Trading code", sec)
+        self.assertNotIn("Arris Holdings Berhad", sec)
+        self.assertNotIn("Australia Sunny Glass Group Limited", sec)
+        self.assertEqual(sec.count('<article class="insights__card">'), 2)
+        self.assertEqual(sec.count('<h3 class="insights__company">'), 2)
+        self.assertEqual(sec.count('class="insights__milestone"'), 2)
+        self.assertEqual(sec.count('<time class="insights__date"'), 2)
         self.assertEqual(len(re.findall(r"<h2", sec)), 1)
-        for tag in ("<article", "<time", "<img", "Read more"):
+        for tag in ("<video", "<button", "<svg", ".pdf", "No articles yet", "Explore Success Story"):
             self.assertNotIn(tag, sec)
-        self.assertNotRegex(re.sub(r"<[^>]+>", " ", sec), r"\b(19|20)\d\d\b")
         self.assertNotIn('href="#"', sec)
 
     def test_links_resolve_to_existing_pages(self):
@@ -530,15 +561,23 @@ class InsightsSectionTests(unittest.TestCase):
             self.assertFalse(href.startswith("http") or href.startswith("#"), href)
             self.assertTrue((ROOT / href).exists(), href)
 
-    def test_decorative_art_hidden_and_status_region(self):
+    def test_only_existing_identified_logos_are_used(self):
         sec = self.section()
-        self.assertIn('class="insights__art" aria-hidden="true"', sec)
+        self.assertIn('alt="Nuren Group Limited"', sec)
+        for src in re.findall(r'src="([^"]+)"', sec):
+            self.assertTrue((ROOT / src).is_file(), src)
+        self.assertIn('src="assets/images/actelerate-international-group-logo.png"', sec)
+        self.assertNotIn("ausgold-international-group-logo.png", sec)
+        self.assertIn('alt="Actcelerate International Group Limited"', sec)
+        self.assertNotIn("sydney-sunny-glass", sec)
         self.assertNotIn('role="status"', sec)  # static content is not a live region (A11Y-3)
 
     def test_responsive_css_and_pattern_documented(self):
         css = all_css()
-        self.assertRegex(css, r"\.insights__grid\s*\{[^}]*grid-template-columns:\s*minmax\(0, 1fr\)")
-        self.assertRegex(css, r"min-width: 1024px\)\s*\{[^}]*\.insights__grid\s*\{[^}]*6fr[^}]*5fr")
+        self.assertRegex(css, r"\.insights__cards\s*\{[^}]*grid-template-columns:\s*minmax\(0, 1fr\)")
+        self.assertRegex(css, r"\.insights__cards\s*\{[^}]*grid-template-columns: repeat\(2, minmax\(0, 1fr\)\)")
+        self.assertRegex(css, r"\.insights__card\s*\{[^}]*border-radius: 6px")
+        self.assertIn("prefers-reduced-motion: reduce", css)
         self.assertNotRegex(css, r"\.insights[^{]*\{[^}]*opacity: 0")
         doc = (ROOT / "docs/insights-pattern.md").read_text(encoding="utf-8")
         for field in ("Category", "Featured image", "Publication date", "Title", "Short description", "Read-more link"):
@@ -573,13 +612,19 @@ class ContactFooterTests(unittest.TestCase):
         return (ROOT / name).read_text(encoding="utf-8")
 
     def test_footer_on_every_page_has_six_links_and_labelled_contact(self):
+        reference = self.read("index.html")
+        reference_footer = re.search(r'<footer class="site-footer">.*?</footer>', reference, re.S).group(0)
+        reference_footer = re.sub(r">\s+<", "><", re.sub(r"\s+", " ", reference_footer)).strip()
         for name, _ in PAGES:
             html = self.read(name)
+            footer = re.search(r'<footer class="site-footer">.*?</footer>', html, re.S).group(0)
+            footer = re.sub(r">\s+<", "><", re.sub(r"\s+", " ", footer)).strip()
+            self.assertEqual(footer, reference_footer, name)
             nav = re.search(r'<nav class="site-footer__nav".*?</nav>', html, re.S).group(0)
             self.assertEqual(re.findall(r'href="([^"]+)"', nav), [p for p, _ in PAGES], name)
-            self.assertIn("NSX-listed group contact", html, name)
-            self.assertIn("not confirmed as an ACTP-owned mailbox", html, name)
-            self.assertIn('href="mailto:contact@arris.com.my"', html, name)
+            self.assertIn('<p class="site-footer__label">NSX-listed group contact</p>', html, name)
+            self.assertIn('href="mailto:contact@arris.com.my">contact@arris.com.my</a>', html, name)
+            self.assertNotIn("not confirmed as an ACTP-owned mailbox", html, name)
             tels = re.findall(r'href="(tel:[^"]*)"', html)
             self.assertTrue(tels, name)
             for tel in tels:
@@ -590,7 +635,12 @@ class ContactFooterTests(unittest.TestCase):
     def test_homepage_cta_targets_contact_and_is_contrast_safe(self):
         html = self.read("index.html")
         sec = re.search(r'<section class="section contact-cta".*?</section>', html, re.S).group(0)
-        self.assertIn('<a class="button button--cta" href="contact.html">Get in Touch</a>', sec)
+        self.assertIn('<a class="button button--cta" href="contact.html">Talk to us</a>', sec)
+        self.assertIn("Ready to get listed?", sec)
+        lead = re.search(r'<p class="contact-cta__lead">(.*?)</p>', sec, re.S).group(1)
+        text = re.sub(r"\s+", " ", lead)
+        self.assertEqual(text, "Whether you're exploring an NSX listing, preparing your business for market "
+                         "or navigating ongoing obligations, our advisers are ready to help.")
         css = all_css()
         self.assertRegex(css, r"\.contact-cta__panel\s*\{[^}]*background:\s*var\(--color-white\)")
         self.assertRegex(css, r"\.button--cta\s*\{[^}]*background:\s*var\(--color-forest-dark\)[^}]*color:\s*var\(--color-white\)")
@@ -602,14 +652,15 @@ class ContactFooterTests(unittest.TestCase):
         self.assertNotRegex(html.lower(), r"message sent|thank you for|successfully")
         # The static page never claims acceptance; only the server's response can, after SMTP success.
         self.assertNotIn("accepted by our mail service", html)
-        self.assertIn("Acceptance by the mail service is not confirmation", html)
+        self.assertIn("Online Enquiries Temporarily Unavailable", html)
 
 
 class SecondaryPageTests(unittest.TestCase):
     NSX = "https://www.nsx.com.au/listing/adviser-profile/130/"
     H1 = {
-        "about.html": "About ACTP", "services.html": "Services",
-        "nsx-adviser.html": "NSX Nominated Adviser", "insights.html": "Insights", "contact.html": "Contact",
+        "about.html": "Your Partner in Strategic Growth",
+        "services.html": "Strategic Expertise. Meaningful Progress.",
+        "insights.html": "Insights", "contact.html": "Let's Start a Conversation.",
     }
 
     def read(self, name):
@@ -621,7 +672,7 @@ class SecondaryPageTests(unittest.TestCase):
             html = self.read(name)
             self.assertEqual(re.findall(r"<h1[^>]*>(.*?)</h1>", html, re.S), [h1], name)
             titles.add(re.search(r"<title>(.*?)</title>", html).group(1))
-            descs.add(re.search(r'name="description" content="([^"]+)"', html).group(1))
+            descs.add(re.search(r'name="description"\s+content="([^"]+)"', html).group(1))
             for sheet in STYLESHEETS:
                 self.assertIn(f'href="{sheet}"', html, name)
             self.assertIn('src="assets/js/main.js" defer', html, name)
@@ -632,8 +683,8 @@ class SecondaryPageTests(unittest.TestCase):
             self.assertEqual(heads[0], 1, name)
             for a, b in zip(heads, heads[1:]):
                 self.assertLessEqual(b - a, 1, name)
-        self.assertEqual(len(titles), 5)
-        self.assertEqual(len(descs), 5)
+        self.assertEqual(len(titles), 4)
+        self.assertEqual(len(descs), 4)
 
     def test_sections_labelled_and_links_resolve(self):
         for name in self.H1:
@@ -652,23 +703,86 @@ class SecondaryPageTests(unittest.TestCase):
             for src in re.findall(r'(?:src|href)="(assets/[^"]+)"', html):
                 self.assertTrue((ROOT / src).is_file(), (name, src))
 
+    def test_about_page_sections_and_credential_content(self):
+        html = self.read("about.html")
+        main = re.search(r"<main.*?</main>", html, re.S).group(0)
+        ordered_headings = (
+            "Your Partner in Strategic Growth", "Corporate credentials",
+            "Built on Professional Expertise", "Expertise That Supports Every Milestone",
+            "Insight. Integrity. Execution.", "Guiding Businesses Towards Their Next Milestone",
+            "Ready to get listed?",
+        )
+        positions = [main.index(heading) for heading in ordered_headings]
+        self.assertEqual(positions, sorted(positions))
+        self.assertEqual(main.count('<article class="about-credential">'), 3)
+        self.assertEqual(main.count('<article class="about-expertise-card">'), 4)
+        self.assertEqual(main.count('<article class="about-principle">'), 3)
+        self.assertIn("Recognised in September 2022", main)
+        self.assertIn("https://www.nsx.com.au/ftp/news/021741291.PDF", main)
+        self.assertIn("Source: NSX Adviser Profile", main)
+        self.assertNotIn("described by NSX", main)
+        self.assertNotIn("Read ACTP's NSX profile", main)
+        self.assertIn('<section class="section contact-cta" aria-labelledby="contact-title">', main)
+        self.assertNotIn("capital raised", main.lower())
+        self.assertNotIn("testimonial", main.lower())
+
     def test_sourced_attribution(self):
         about = self.read("about.html")
         self.assertIn("wholly owned subsidiary of Arris Holdings Berhad", about)
         self.assertIn(self.NSX, about)
-        self.assertIn("https://www.arris.com.my/", about)
-        self.assertIn("pending confirmation by ACTP", about)
-        self.assertIn("39, Jalan Kenari 17C", about)
-        nsx = self.read("nsx-adviser.html")
-        for url in (self.NSX, "https://www.nsx.com.au/listing/adviser-list/",
-                    "https://www.nsx.com.au/regulation/companies/nominated-adviser/"):
-            self.assertIn(url, nsx)
-        self.assertIn("not a licence, certification or endorsement", nsx)
-        svc = self.read("services.html")
-        self.assertIn("pending confirmation by ACTP", svc)
-        self.assertIn("not offered or implied here", svc)
-        self.assertIn('href="nsx-adviser.html"', svc)
+        self.assertIn("https://www.nsx.com.au/ftp/news/021741291.PDF", about)
+        self.assertIn("Recognised in September 2022", about)
+        self.assertNotIn("https://www.nsx.com.au/regulation/companies/nominated-adviser/", about)
+        self.assertNotIn("described by NSX", about)
+        self.assertIn("Ready to get listed?", about)
+        self.assertIn('href="contact.html">Talk to us', about)
+        svc = " ".join(self.read("services.html").split())
+        self.assertIn("wider Arris", svc)
+        self.assertIn("group services offering", svc)
+        self.assertIn("responsible service entity are confirmed through enquiry", svc)
+        self.assertIn("capital raising and transaction outcomes are not guaranteed", svc)
+        self.assertIn(self.NSX, svc)
+        self.assertIn("https://www.nsx.com.au/listing/why-list-with-us/", svc)
+        self.assertIn("https://www.nsx.com.au/regulation/companies/nominated-adviser/", svc)
+        self.assertNotIn("nsx-adviser.html", svc)
+        self.assertIn('id="credentials"', svc)
         self.assertIn('href="contact.html"', svc)
+
+    def test_services_sections_capabilities_and_metadata(self):
+        html = self.read("services.html")
+        main = re.search(r"<main.*?</main>", html, re.S).group(0)
+        headings = re.findall(r"<h2[^>]*>(.*?)</h2>", main)
+        self.assertEqual(headings, [
+            "NSX Nominated Adviser Services",
+            "Expertise Across Key Corporate Milestones",
+            "The Value of an NSX Listing",
+            "Let's Discuss Your Next Milestone",
+        ])
+        self.assertEqual(len(re.findall(r"<section[ >]", main)), 5)
+        self.assertNotIn("service-process", main)
+        self.assertNotIn("From Insight to Execution", main)
+        self.assertNotIn("service-consultation", main)
+        services_cta = re.search(r'<section class="section contact-cta".*?</section>', main, re.S).group(0)
+        self.assertIn("Let's Connect", services_cta)
+        self.assertIn("Services and engagement scope are subject to confirmation", services_cta)
+        self.assertIn('href="contact.html">Talk to us', services_cta)
+        self.assertNotIn('class="service-scope"', main)
+        self.assertEqual(main.count('<article class="service-capability">'), 6)
+        self.assertEqual(main.count('<article class="service-responsibility">'), 3)
+        self.assertEqual(main.count('<article class="service-benefit">'), 2)
+        self.assertEqual(main.count("<dt>"), 6)
+        self.assertIn('href="#capabilities"', main)
+        self.assertIn("Directors remain responsible for compliance", main)
+        self.assertIn("liquidity and share value are not assured", main)
+        for obsolete in ("Where to go next", "Not established as ACTP services", "pending confirmation by ACTP"):
+            self.assertNotIn(obsolete, main)
+        title = "NSX Nominated Adviser &amp; Corporate Advisory | ACTP Sdn Bhd"
+        self.assertIn(f"<title>{title}</title>", html)
+        self.assertIn(f'property="og:title" content="{title}"', html)
+        description = re.search(r'name="description"\s+content="([^"]+)"', html).group(1)
+        self.assertIn(f'property="og:description"\n    content="{description}"', html)
+        for card in re.findall(r'<article class="service-capability">(.*?)</article>', main, re.S):
+            self.assertNotRegex(card, r"<a\b|tabindex|onclick")
 
     def test_no_invented_claims(self):
         for name in self.H1:
@@ -678,33 +792,58 @@ class SecondaryPageTests(unittest.TestCase):
             if name != "contact.html":
                 self.assertNotIn("<form", main, name)
 
-    def test_insights_genuine_empty_state(self):
+    def test_insights_company_milestones_and_adviser_relationships(self):
         main = re.search(r"<main.*?</main>", self.read("insights.html"), re.S).group(0)
-        self.assertIn("There are no published insights available yet.", main)
+        self.assertNotIn("There are no published insights available yet.", main)
         self.assertNotIn('role="status"', main)
-        for bad in ("<article", "<time", "Read more", "<img", "<li"):
-            self.assertNotIn(bad, main)
+        cards = re.findall(r'<article class="insights__card">(.*?)</article>', main, re.S)
+        self.assertEqual(len(cards), 4)
+        for card, company in zip(cards, (
+            "Nuren Group Limited", "Arris Holdings Berhad",
+            "Actcelerate International Group Limited", "Sydney Sunny Glass",
+        )):
+            self.assertIn(company, card)
+            self.assertRegex(card, r'<img[^>]+width="\d+"[^>]+height="\d+"')
+            self.assertIn('class="insights-page__source"', card)
+        self.assertIn('datetime="2024-08-06"', cards[0])
+        self.assertIn("30 June 2026", cards[0])
+        self.assertIn('datetime="2022-11-01"', cards[1])
+        self.assertIn("not its original", cards[1])
+        self.assertIn("predates ACTP's NSX recognition", cards[2])
+        self.assertIn("Historical NSX Nominated Adviser", cards[3])
+        self.assertIn("Glass Group Limited (NSX: AG1)", cards[3])
+        self.assertIn("18 December 2025", cards[3])
+        self.assertIn('href="https://www.nsx.com.au/marketdata/company-directory/AG1/"', cards[3])
+        self.assertIn("service-hero--discover", main)
+        self.assertIn('src="assets/section-discover.png" width="1349" height="1166"', main)
+        self.assertIn("Behind every milestone, a business moving forward.", main)
+        for card in cards[2:]:
+            self.assertNotIn("<time", card)
+        self.assertIn('href="#company-milestones"', main)
+        self.assertIn('class="contact-cta__panel"', main)
+        self.assertIn('href="contact.html">Talk to us', main)
 
     def test_contact_accessible_and_truthful(self):
         html = self.read("contact.html")
         main = re.search(r"<main.*?</main>", html, re.S).group(0)
-        self.assertIn("not a confirmed ACTP-owned mailbox", main)
+        self.assertIn("These are the group contact details published in ACTP's official NSX adviser profile.", main)
         self.assertNotIn("no enquiry form yet", main.lower())
         self.assertIn('href="mailto:contact@arris.com.my"', main)
         self.assertRegex(main, r'href="tel:\+[0-9]+"')
         self.assertIn(self.NSX, main)
-        self.assertIn('<main id="main" tabindex="-1">', html)
+        self.assertIn('<main id="main" class="contact-page" tabindex="-1">', html)
         self.assertIn('src="assets/actp-logo-432.png" width="432" height="146"', html)
         # fail closed: the form is inert inside a template; the visible default is the unavailable notice
         self.assertNotRegex(re.sub(r"<template.*?</template>", "", main, flags=re.S), r"<form|<input|<textarea|<button")
         notice = re.search(r'<div id="form-availability".*?</div>', main, re.S).group(0)
-        self.assertIn("not available", notice)
-        self.assertIn("nothing can be sent", notice)
+        self.assertIn("Online Enquiries Temporarily Unavailable", notice)
+        self.assertIn("Our online enquiry form is currently unavailable.", notice)
         self.assertIn('href="contact-submit.php?form=1"', notice)
-        form = re.search(r"<template id=\"enquiry-form-template\">(<form.*?</form>)</template>", main, re.S).group(1)
+        form = re.search(r'<template id="enquiry-form-template">\s*(<form.*?</form>)\s*</template>', main, re.S).group(1)
+        form = " ".join(form.split())
         self.assertIn('method="post"', form)
         self.assertIn('action="contact-submit.php"', form)
-        for name in ("name", "email", "organisation", "message"):
+        for name in ("name", "email", "organisation", "category", "message"):
             self.assertRegex(form, rf'<label for="field-{name}">')
             self.assertRegex(form, rf'id="field-{name}" name="{name}"')
         self.assertRegex(form, r'type="email"[^>]*autocomplete="email"')
@@ -714,15 +853,23 @@ class SecondaryPageTests(unittest.TestCase):
         # honeypot is hidden from assistive tech and keyboard
         self.assertRegex(form, r'aria-hidden="true">.*?name="website" tabindex="-1"')
         # visible text says what the form can and cannot promise
-        self.assertIn("not confirmation that anyone has read it", main)
+        self.assertIn("The information you submit is used to respond to your enquiry.", main)
+        self.assertIn('name="category" required', form)
+        self.assertEqual(len(re.findall(r'<option value="[^"]+">', form)), 5)
+        self.assertIn("39 Jalan Kenari 17C", main)
+        self.assertIn("google.com/maps/search/?api=1", main)
         self.assertNotRegex(main, r"(?i)<input[^>]*type=\"hidden\"")
         self.assertNotRegex(html, r"smtp|password|mail_to")
 
     def test_secondary_page_css(self):
         css = all_css()
-        self.assertRegex(css, r"\.page-boundary\s*\{[^}]*background:\s*var\(--color-white\)")
-        self.assertIn(".contact-list a", css)
-        self.assertIn("min-height: 44px", css)
+        self.assertIn(".service-hero__grid", css)
+        self.assertRegex(css, r"\.insights__card\s*\{[^}]*background:\s*var\(--color-white\)")
+        self.assertIn(".about-credentials__grid", css)
+        self.assertIn(".about-expertise__grid", css)
+        self.assertIn(".about-principles", css)
+        self.assertIn("min-height: var(--tap-min)", css)
+        self.assertRegex(css, r"--tap-min:\s*44px")
         self.assertIn("minmax(0, 1fr)", css)
 
 

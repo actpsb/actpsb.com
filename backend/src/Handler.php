@@ -50,9 +50,12 @@ final class Handler
 
         try {
             $config = Config::load($this->privateDir, $this->env);
+            if (!$config->v['form_enabled']) {
+                throw new ConfigException('form_disabled');
+            }
         } catch (ConfigException $e) {
-            $this->log($rid, $e->getMessage(), null);
-            return $this->out($json, 503, 'unavailable', 'The enquiry form is not available yet, so your message was not sent. Please use the NSX-listed details on this page instead.', [], [], $rid, false);
+            $this->log($rid, $e->getMessage());
+            return $this->out($json, 503, 'unavailable', 'Our online enquiry form is currently unavailable. Your enquiry was not submitted. Please use the published email or telephone number.', [], [], $rid, false);
         }
         $log = new EventLog($config->v['state_dir']);
 
@@ -108,18 +111,18 @@ final class Handler
             $send($config, $res['values']);
         } catch (SendFailure $e) {
             $log->write($rid, $e->getMessage());
-            return $this->out($json, 502, 'failed', 'Your message was not sent because the mail service did not accept it. Nothing has been delivered. Please try again later.', [], $res['values'], $rid, true);
+            return $this->out($json, 502, 'failed', 'We could not confirm your enquiry was submitted. Please use the published email or telephone number before resubmitting.', [], $res['values'], $rid, true);
         } catch (\Throwable) {
             $log->write($rid, 'send_error');
-            return $this->out($json, 502, 'failed', 'Your message was not sent because the mail service did not accept it. Nothing has been delivered. Please try again later.', [], $res['values'], $rid, true);
+            return $this->out($json, 502, 'failed', 'We could not confirm your enquiry was submitted. Please use the published email or telephone number before resubmitting.', [], $res['values'], $rid, true);
         }
         $log->write($rid, 'smtp_accepted');
-        return $this->out($json, 200, 'accepted', 'Your enquiry was accepted by our mail service for delivery. This is not a confirmation that it has been read or that anyone will reply.', [], [], $rid, false);
+        return $this->out($json, 200, 'accepted', 'Thank you. Your enquiry has been submitted successfully.', [], [], $rid, false);
     }
 
     /**
      * Availability preflight for the contact page script. It only checks that private configuration
-     * loads and validates. It never contacts the mail server and reveals no configuration value or code.
+    * loads, validates and explicitly enables the form. It never contacts the mail server or reveals configuration.
      */
     private function preflight(string $rid): Response
     {
@@ -135,7 +138,7 @@ final class Handler
     private function formPage(string $rid): Response
     {
         if (!$this->configured($rid)) {
-            return $this->out(false, 503, 'unavailable', 'The enquiry form is not available yet, so no message can be sent here. Please use the NSX-listed details on this page instead.', [], [], $rid, false);
+            return $this->out(false, 503, 'unavailable', 'Our online enquiry form is currently unavailable. Please contact us using the published details alongside this form.', [], [], $rid, false);
         }
         return $this->out(false, 200, 'ready', '', [], [], $rid, true);
     }
@@ -143,10 +146,10 @@ final class Handler
     private function configured(string $rid): bool
     {
         try {
-            Config::load($this->privateDir, $this->env);
-            return true;
+            $config = Config::load($this->privateDir, $this->env);
+            return $config->v['form_enabled'];
         } catch (ConfigException $e) {
-            $this->log($rid, $e->getMessage(), null);
+            $this->log($rid, $e->getMessage());
             return false;
         }
     }
@@ -169,13 +172,13 @@ final class Handler
     private function keep(array $post): array
     {
         $o = [];
-        foreach (['name', 'email', 'organisation', 'message'] as $k) {
+        foreach (['name', 'email', 'organisation', 'category', 'message'] as $k) {
             $o[$k] = is_string($post[$k] ?? null) ? mb_substr($post[$k], 0, Validator::MAX_MESSAGE, 'UTF-8') : '';
         }
         return $o;
     }
 
-    private function log(string $rid, string $code, ?Config $c): void
+    private function log(string $rid, string $code): void
     {
         // Without valid configuration there is no trusted state dir; use the private dir default.
         (new EventLog($this->privateDir . '/var'))->write($rid, $code);

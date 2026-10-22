@@ -3,7 +3,6 @@ declare(strict_types=1);
 
 namespace Actp\Contact;
 
-use PHPMailer\PHPMailer\Exception as MailException;
 use PHPMailer\PHPMailer\PHPMailer;
 
 /**
@@ -13,7 +12,7 @@ use PHPMailer\PHPMailer\PHPMailer;
 final class SmtpSender
 {
     /**
-     * @param array<string,string> $f validated fields: name, email, organisation, message
+    * @param array<string,string> $f validated fields: name, email, organisation, category, message
      * @throws SendFailure carrying a fixed category, never library text
      */
     public static function send(Config $config, array $f): void
@@ -61,7 +60,8 @@ final class SmtpSender
             . "The visitor's address below is unverified and is the Reply-To address only.\n\n"
             . 'Name: ' . $f['name'] . "\n"
             . 'Email: ' . $f['email'] . "\n"
-            . 'Organisation: ' . ($f['organisation'] !== '' ? $f['organisation'] : '(not given)') . "\n\n"
+            . 'Organisation: ' . ($f['organisation'] !== '' ? $f['organisation'] : '(not given)') . "\n"
+            . 'Nature of enquiry: ' . $f['category'] . "\n\n"
             . "Message:\n" . $f['message'] . "\n";
     }
 

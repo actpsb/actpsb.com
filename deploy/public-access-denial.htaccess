@@ -1,0 +1,20 @@
+# ACTP public access denial. Merge into the .htaccess of the document root; see docs/htaccess-protection.md.
+# Do not replace the existing file: cPanel keeps its own PHP-handler block in it.
+# BEGIN ACTP access denial
+<IfModule mod_rewrite.c>
+RewriteEngine On
+# Dot files and folders (.git, .github, .env, .htpasswd, ...) except /.well-known/
+RewriteRule (^|/)\.(?!well-known(/|$)) - [F,L]
+# Repository folders that are not part of the public site
+RewriteRule ^(backend|docs|scripts|tests|vendor|dist|deploy|node_modules)(/|$) - [F,L,NC]
+# Repository and tooling files
+RewriteRule ^(README\.md|composer\.(json|lock)|package(-lock)?\.json|\.gitignore)$ - [F,L,NC]
+# Source, data and backup file types; contact-submit.php (the only public PHP file) stays reachable
+RewriteRule \.(md|py|pyc|lock|log|bak|old|orig|swp|sql|sqlite|zip|tar|gz|ini|conf|ya?ml|sh|inc|phps)$ - [F,L,NC]
+RewriteRule ^(?!contact-submit\.php$).+\.php[0-9]?$ - [F,L,NC]
+</IfModule>
+<IfModule mod_headers.c>
+Header always set X-Content-Type-Options "nosniff"
+Header always set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>
+# END ACTP access denial

@@ -76,13 +76,15 @@ The host has no cPanel Terminal, so nothing runs on the server except PHP servin
 
 - `actpsb-public.zip`: site pages, `assets/`, `robots.txt`, `contact-submit.php`
 - `actpsb-backend.zip`: `src/`, `vendor/` (PHPMailer 6.12.0, locked), `licenses/`
-- `actpsb-private.zip`: `config.php` placeholder (password placeholder only)
+- `actpsb-private.zip`: `config.example.php` template only (password placeholder only; never `config.php`)
+
+CI also publishes `MANIFEST.json` (source SHA, SHA-256 and members of each ZIP, locked dependency versions) and `SHA256SUMS.txt` beside the ZIPs. Upgrade and rollback: see [upgrade-rollback.md](upgrade-rollback.md).
 
 Steps in cPanel File Manager:
 
 1. Upload and Extract `actpsb-public.zip` into `/home/arriscom/public_html/actpsb.com`.
 2. Upload and Extract `actpsb-backend.zip` into `/home/arriscom/actpsb-backend` (outside `public_html`).
-3. Upload and Extract `actpsb-private.zip` into `/home/arriscom/actpsb-private` (keep the folder at 0700). Open `config.php` in the editor, replace only `CONFIRM_SET_PASSWORD_ON_SERVER_ONLY` with the mailbox password, confirm `allowed_origins` matches the live origin, save, and set the file to 0600. Do not paste the password in chat, tickets or git.
+3. First install only: Upload and Extract `actpsb-private.zip` into `/home/arriscom/actpsb-private` (keep the folder at 0700), copy `config.example.php` to `config.php`, open `config.php` in the editor, replace only `CONFIRM_SET_PASSWORD_ON_SERVER_ONLY` with the mailbox password, confirm `allowed_origins` matches the live origin, save, and set the file to 0600. Do not paste the password in chat, tickets or git.
 4. In MultiPHP Manager confirm actpsb.com runs PHP 8.3 and in the PHP extensions list confirm `openssl` and `mbstring` are enabled. There is no browser-accessible installer and none is needed.
 5. In a staging or maintenance environment, explicitly enable the form and run the authorised end-to-end test with a mailbox the owner controls; verify receipt in that inbox. Record the result in the task, not in this file. Enable `form_enabled` on the public site only after that test succeeds; disable it again if verification fails.
 

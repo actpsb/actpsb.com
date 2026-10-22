@@ -34,6 +34,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: actpsb-cpanel-${{ github.sha }}
-          path: dist/actpsb-*.zip
+          path: |
+            dist/actpsb-*.zip
+            dist/MANIFEST.json
+            dist/SHA256SUMS.txt
           if-no-files-found: error
           retention-days: 30

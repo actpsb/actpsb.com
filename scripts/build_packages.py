@@ -2,12 +2,16 @@
 
   actpsb-public.zip   -> extract into /home/arriscom/public_html/actpsb.com
   actpsb-backend.zip  -> extract into /home/arriscom/actpsb-backend (vendor/ included, no Composer on server)
-  actpsb-private.zip  -> extract into /home/arriscom/actpsb-private (placeholder config.php, no secrets)
+  actpsb-private.zip  -> extract into /home/arriscom/actpsb-private (config.example.php TEMPLATE ONLY, no secrets;
+                          it never contains config.php, so extracting cannot overwrite a live configuration)
 
 Needs php and composer on the BUILD machine only: set ACTP_PHP and ACTP_COMPOSER (path to composer.phar)
 if they are not on PATH. Nothing here talks to a server.
 """
+import hashlib
+import json
 import os
+import re
 import shutil
 import subprocess
 import tempfile
@@ -61,11 +65,55 @@ def build(dist: Path) -> dict:
 
     cfg = (ROOT / "backend/config/config.example.php").read_text(encoding="utf-8")
     with zipfile.ZipFile(dist / "actpsb-private.zip", "w") as z:
-        info = zipfile.ZipInfo("config.php", FIXED_TIME)
+        info = zipfile.ZipInfo("config.example.php", FIXED_TIME)
         info.compress_type = zipfile.ZIP_DEFLATED
         info.external_attr = 0o600 << 16
         z.writestr(info, cfg)
+    check_public_references(pub)
+    write_manifest(dist)
     return {p.name: p.stat().st_size for p in sorted(dist.glob("*.zip"))}
+
+
+def check_public_references(pub):
+    """Fail the build if a page references a local file the public ZIP would not contain."""
+    shipped = {p.relative_to(ROOT).as_posix() for p in pub}
+    missing = []
+    for page in ROOT.glob("*.html"):
+        for ref in re.findall(r'(?:href|src)="([^"#?:]+)"', page.read_text(encoding="utf-8")):
+            if ref.startswith(("http", "//", "mailto", "tel")) or ref == "":
+                continue
+            if ref not in shipped:
+                missing.append(f"{page.name} -> {ref}")
+    if missing:
+        raise SystemExit("public package is missing referenced files: " + ", ".join(sorted(set(missing))))
+
+
+def source_sha() -> str:
+    sha = os.environ.get("GITHUB_SHA")
+    if sha:
+        return sha
+    out = subprocess.run(["git", "rev-parse", "HEAD"], cwd=ROOT, capture_output=True, text=True)
+    return out.stdout.strip() or "unknown"
+
+
+def write_manifest(dist: Path):
+    """MANIFEST.json and SHA256SUMS.txt describe the ZIPs; they are not inside the ZIPs."""
+    lock = json.loads((ROOT / "backend/composer.lock").read_text(encoding="utf-8"))
+    deps = {p["name"]: p["version"] for p in lock["packages"]}
+    targets = {"actpsb-public.zip": "/home/arriscom/public_html/actpsb.com",
+               "actpsb-backend.zip": "/home/arriscom/actpsb-backend",
+               "actpsb-private.zip": "/home/arriscom/actpsb-private"}
+    zips = {}
+    for name, target in targets.items():
+        data = (dist / name).read_bytes()
+        with zipfile.ZipFile(dist / name) as z:
+            members = sorted(z.namelist())
+        zips[name] = {"extract_into": target, "sha256": hashlib.sha256(data).hexdigest(),
+                      "bytes": len(data), "entries": len(members), "members": members}
+    manifest = {"source_sha": source_sha(), "dependencies": deps, "packages": zips}
+    (dist / "MANIFEST.json").write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+    (dist / "SHA256SUMS.txt").write_text(
+        "".join(f"{v['sha256']}  {k}\n" for k, v in zips.items()), encoding="utf-8")
 
 
 if __name__ == "__main__":

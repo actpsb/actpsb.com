@@ -650,6 +650,9 @@ class PackageTests(unittest.TestCase):
                 self.assertEqual(r.status, expect_status)
                 return json.loads(r.read())
 
+            # the private ZIP is a template only: it must not create config.php
+            self.assertFalse((home / "actpsb-private" / "config.php").exists())
+            shutil.copy(home / "actpsb-private" / "config.example.php", home / "actpsb-private" / "config.php")
             # as shipped: placeholder password => fails closed, nothing sent
             self.assertEqual(run(503)["status"], "unavailable")
             self.assertEqual(sb.messages, [])

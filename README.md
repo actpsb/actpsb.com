@@ -204,7 +204,7 @@ The generated `dist/` folder contains:
 | --- | --- |
 | `actpsb-public.zip` | Extract inside `/home/arriscom/public_html/actpsb.com`. Contains the five pages, assets, icon and public PHP entry point. |
 | `actpsb-backend.zip` | Extract inside `/home/arriscom/actpsb-backend`, outside the public folder. Contains server code and the installed email library. |
-| `actpsb-private.zip` | For a new setup only: extract inside `/home/arriscom/actpsb-private`. Contains an example configuration, not working credentials. Do not overwrite an existing working configuration. |
+| `actpsb-private.zip` | Template only: extract inside `/home/arriscom/actpsb-private`. Contains `config.example.php`, never `config.php`, so it cannot overwrite an existing working configuration. See [docs/upgrade-rollback.md](docs/upgrade-rollback.md). |
 
 These paths describe the existing hosting plan; a different account needs its own paths. The detailed steps and configuration checklist are in [docs/contact-backend.md](docs/contact-backend.md).
 

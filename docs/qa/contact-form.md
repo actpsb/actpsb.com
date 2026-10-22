@@ -9,7 +9,9 @@ Updated 22 October 2026 for the Contact redesign. Chromium browser checks used a
 | Empty submission | Four linked field errors for name, email, category and message; `role="alert"`, status focus and `aria-invalid` associations. |
 | Two immediate submit attempts | One POST. Button is disabled while processing and restored afterward. |
 | Accepted synthetic SMTP submission | Exact server-confirmed success message, `role="status"`, form reset, browser remains on Contact. No inbox-delivery claim. |
-| Network failure | Entered message/category retained; button restored; submission status explicitly unconfirmed, with published contact alternatives. |
+| Short or invalid input | The script applies the server's rules (message 10 to 5000 characters, valid email, allowed category) before any request; field errors are shown and nothing is sent. The server revalidates; native no-JS posts and older scripts get the same 422 field errors. |
+| Network failure, timeout, or a response that is not a readable server answer (HTML, empty, non-JSON, 5xx other than a JSON `failed`) | Entered message/category retained; button restored; "We could not confirm your submission" with published contact alternatives. Never shown as success and never retried automatically. |
+| HTTP 4xx or 503 without a readable JSON answer (older deployed endpoint, missing backend, proxy refusal) | Shown as not sent, with the HTTP status. |
 | JavaScript disabled | Static page keeps the inert template; availability link renders the native form. Invalid email preserves name/category and renders linked field errors. Corrected POST renders the success view without a form. |
 | Keyboard/mobile menu | Visible 3px input focus outline; menu opens and closes with Escape. |
 

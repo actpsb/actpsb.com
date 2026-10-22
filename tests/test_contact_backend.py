@@ -673,6 +673,80 @@ class PackageTests(unittest.TestCase):
             shutil.rmtree(tmp, ignore_errors=True)
 
 
+def client_view(status, body):
+    """What contact-form.js shows for a real backend response (run under node)."""
+    node = shutil.which("node")
+    if not node:
+        raise unittest.SkipTest("node unavailable")
+    driver = "const a=require(process.argv[1]);const i=JSON.parse(process.argv[2]);" \
+             "process.stdout.write(JSON.stringify(a.interpret(i.s,i.b,false)))"
+    p = subprocess.run([node, "-e", driver, str(ROOT / "assets/js/contact-form.js"),
+                        json.dumps({"s": status, "b": body})], capture_output=True, text=True, timeout=30)
+    assert p.returncode == 0, p.stderr
+    return json.loads(p.stdout)
+
+
+class ClientContractTests(BackendBase):
+    """Real backend responses, read the way the browser script reads them."""
+    env_over = {"ACTP_RATE_IP_MAX": "100"}
+    BLANK = UnconfiguredTests.BLANK
+
+    def test_short_message_reaches_the_visitor_as_a_field_error_and_sends_nothing(self):
+        s = self.start()
+        status, _, body = s.post({**GOOD, "message": "test"})
+        self.assertEqual(status, 422)
+        v = client_view(status, body)
+        self.assertEqual(v["state"], "invalid")
+        self.assertIn("message", v["errors"])
+        self.assertNotIn("could not confirm", v["message"])
+        self.assertEqual(self.sb.messages, [])
+
+    def test_accepted_is_shown_as_accepted_only_for_real_smtp_acceptance(self):
+        s = self.start()
+        status, _, body = s.post(GOOD)
+        self.assertEqual(client_view(status, body)["state"], "accepted")
+        self.assertEqual(len(self.sb.messages), 1)
+
+    def test_smtp_failure_is_never_shown_as_accepted(self):
+        s = self.start(ACTP_SMTP_PASS="wrong-synthetic-pass")
+        status, _, body = s.post(GOOD)
+        v = client_view(status, body)
+        self.assertEqual(v["state"], "failed")
+        self.assertNotRegex(v["message"].lower(), r"thank you|submitted successfully")
+        self.assertEqual(self.sb.messages, [])
+
+    def test_unavailable_configuration_is_shown_as_not_submitted(self):
+        s = self.start(**self.BLANK)
+        status, _, body = s.post(GOOD)
+        v = client_view(status, body)
+        self.assertEqual(v["state"], "unavailable")
+        self.assertIn("not submitted", v["message"])
+
+    def test_origin_rejection_is_shown_as_not_sent(self):
+        s = self.start()
+        status, _, body = s.post(GOOD, headers={"Origin": "https://evil.example"})
+        v = client_view(status, body)
+        self.assertEqual((status, v["state"]), (403, "rejected"))
+        self.assertIn("not sent", v["message"])
+        self.assertEqual(self.sb.messages, [])
+
+    def test_html_response_to_json_request_is_not_success(self):
+        """A request without Accept: application/json gets the HTML page; the script must not treat it as an answer."""
+        s = self.start()
+        status, headers, body = s.post(GOOD, json_accept=False)
+        self.assertIn("text/html", headers["Content-Type"])
+        self.assertEqual(client_view(status, body)["state"], "unconfirmed")
+
+    def test_missing_backend_is_shown_as_not_submitted(self):
+        site = self.start(ACTP_BACKEND_DIR=str(self.tmp / "nope"))
+        status, _, body = site.post(GOOD)
+        self.assertEqual(status, 503)
+        v = client_view(status, body)
+        self.assertEqual(v["state"], "unavailable")
+        self.assertIn("not submitted", v["message"])
+        self.assertEqual(self.sb.messages, [])
+
+
 class PublicSurfaceTests(unittest.TestCase):
     def test_no_secrets_or_private_files_tracked(self):
         try:

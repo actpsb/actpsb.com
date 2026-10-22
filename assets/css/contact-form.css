@@ -255,6 +255,8 @@
 
 .form-status--invalid,
 .form-status--failed,
+.form-status--unconfirmed,
+.form-status--unavailable,
 .form-status--rejected,
 .form-status--rate_limited {
   border-left-color: #9b1c1c;

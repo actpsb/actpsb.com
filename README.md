@@ -65,7 +65,7 @@ These are real project assets, not disposable code. Keep the original logo even 
 | [assets/section-discover.png](assets/section-discover.png) | Discover-stage illustration, also used in the Insights opening section. |
 | [assets/section-strategy.png](assets/section-strategy.png) | Strategy-stage illustration, also used in the Services opening section. |
 | [assets/section-execution.png](assets/section-execution.png) | Execute-stage illustration on Home. |
-| [assets/section-support.png](assets/section-support.png) | Support-stage illustration on Home. |
+| [assets/section-support.png](assets/section-support.png) | Support-stage illustration on Home and the Contact header image. |
 | [assets/images/nuren-group-logo.png](assets/images/nuren-group-logo.png) | Nuren company logo for Home and Insights. |
 | [assets/images/actelerate-international-group-logo.png](assets/images/actelerate-international-group-logo.png) | Supplied Actcelerate company logo for Home and Insights. The filename keeps its existing spelling. |
 | [assets/images/arris-holding-logo.png](assets/images/arris-holding-logo.png) | Arris company logo on Insights. |

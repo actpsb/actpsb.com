@@ -613,28 +613,6 @@ and sophisticated.
 Avoid dense paragraphs.
 
 ==================================================
-12. NSX NOMINATED ADVISER
-==================================================
-
-Create a dedicated NSX section.
-
-Explain:
-
-- ACTP's verified NSX relationship
-- The role of a Nominated Adviser
-- How the advisory process works
-- Relevant services for prospective issuers
-
-Include an official NSX reference link.
-
-Do not imply that ACTP guarantees
-a successful listing.
-
-Use a clean editorial presentation.
-
-This section should reinforce credibility.
-
-==================================================
 13. OUR APPROACH
 ==================================================
 
@@ -1001,9 +979,6 @@ Build company introduction.
 
 ACTP-009
 Build advisory services section.
-
-ACTP-010
-Build NSX section.
 
 ACTP-011
 Create our approach timeline.

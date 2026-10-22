@@ -1,6 +1,6 @@
 # ACTP design direction (2026-10-19)
 
-Design authority: supplied logo at `assets/actp-logo.png` (841×284); preserve the original. Shooshy unavailable; Chase specifies and Dexter implements. Editorial corporate advisory, not a generic card grid: open off-white canvas, asymmetrical two-column hero, forest services field, restrained typographic NSX explainer, timeline, honest insights empty state, teal contact field. Original logo-inspired geometric linework is preferable to unlicensed stock or invented people/offices. No gold/navy. Alternate scale, rhythm and composition across sections.
+Design authority: supplied logo at `assets/actp-logo.png` (841×284); preserve the original. Shooshy unavailable; Chase specifies and Dexter implements. Editorial corporate advisory, not a generic card grid: open off-white canvas, asymmetrical two-column hero, forest services field, timeline, honest insights empty state, teal contact field. Original logo-inspired geometric linework is preferable to unlicensed stock or invented people/offices. No gold/navy. Alternate scale, rhythm and composition across sections.
 
 ## Color evidence and tokens
 
@@ -75,7 +75,7 @@ Mobile-first section block padding: 48px at 320–479px, 64px at 480–767px, 80
 
 Break at 480/768/1024/1280px only when composition needs it. Below 768px stack editorial pairs with text before decorative imagery in DOM order; let CTA rows wrap and provide 44px minimum target height. At 768–1023px retain stacking unless both text measure and imagery have room. At 1024px use an asymmetric approximately 55/45 hero; alternate image placement visually without changing reading order. Above 1280px cap inner content while background fields span the viewport. Avoid viewport-width elements plus gutters. Check 320, 375, 768, 1024 and 1440px and 200% zoom for heading/menu/button wrapping, imagery clipping, focus visibility and horizontal overflow.
 
-Homepage composition follows `architecture.md`: bounded floating navigation; off-white hero with H1 “ACTP Sdn Bhd”, conservative NSX role copy, two real route CTAs and optional logo-derived abstract visual; airy company introduction with a reading-width copy column; forest services field showing verified role information in editorial rows, not an unverified service catalogue; restrained NSX explainer with official source link; optional clearly labelled illustrative process in horizontal desktop/vertical mobile sequence; honest insights empty state; teal contact moment with opaque high-contrast text panel and real contact route; dark footer. Keep one H1 and sequential H2 headings. Do not visually reverse DOM reading order.
+Homepage composition follows `architecture.md`: bounded floating navigation; off-white hero with H1 “ACTP Sdn Bhd”, conservative NSX role copy, two real route CTAs and optional logo-derived abstract visual; airy company introduction with a reading-width copy column; forest services field showing verified role information in editorial rows, not an unverified service catalogue; optional clearly labelled illustrative process in horizontal desktop/vertical mobile sequence; honest insights empty state; teal contact moment with opaque high-contrast text panel and real contact route; dark footer. Keep one H1 and sequential H2 headings. Do not visually reverse DOM reading order.
 
 ### Motion and progressive enhancement
 

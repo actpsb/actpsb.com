@@ -16,11 +16,6 @@
   font-size: 12px;
 }
 
-.contact-hero h1 {
-  max-width: 18ch;
-  font-size: 42px;
-}
-
 .contact-hero .lead {
   max-width: 66ch;
   margin-bottom: 0;
@@ -308,9 +303,6 @@
 }
 
 @media (min-width: 640px) {
-  .contact-hero h1 {
-    font-size: 56px;
-  }
 
   .contact-details,
   .contact-enquiry {
@@ -335,10 +327,6 @@
 }
 
 @media (min-width: 1024px) {
-  .contact-hero h1 {
-    font-size: 64px;
-  }
-
   .contact-page h2 {
     font-size: 32px;
   }

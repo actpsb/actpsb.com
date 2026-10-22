@@ -432,52 +432,17 @@ class ServicesTests(unittest.TestCase):
         self.assertIn(".services__panel:hover", css)
         self.assertRegex(css, r"\.button--light\s*\{[^}]*color:\s*var\(--color-forest-dark\)")
 
-class NsxSectionTests(unittest.TestCase):
-    def section(self):
-        html = (ROOT / "index.html").read_text(encoding="utf-8")
-        m = re.search(r'<section class="section nsx".*?</section>', html, re.S)
-        self.assertTrue(m)
-        return m.group(0)
-
-    def text(self):
-        return re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", self.section()))
-
-    def test_heading_structure_and_ctas(self):
-        sec = self.section()
-        self.assertEqual(sec.count("<h2"), 1)
-        self.assertNotIn("<h1", sec)
-        self.assertIn('aria-labelledby="nsx-title"', sec)
-        self.assertRegex(sec, r'href="https://www\.nsx\.com\.au/listing/adviser-profile/130/" rel="noopener">\s*View the NSX\s+listing')
-        self.assertIn('href="services.html">Understand the adviser role</a>', sec)
-
-    def test_status_attributed_to_nsx_list_and_profile(self):
-        sec = self.section()
-        self.assertIn('href="https://www.nsx.com.au/listing/adviser-list/"', sec)
-        self.assertIn('href="https://www.nsx.com.au/listing/adviser-profile/130/"', sec)
-        self.assertIn("appears on NSX's registered Nominated Advisers list as an International adviser, a member since 2022", self.text())
-
-    def test_generic_role_per_nsx_explainer(self):
-        sec = self.section()
-        self.assertIn('href="https://www.nsx.com.au/regulation/companies/nominated-adviser/"', sec)
-        text = self.text()
-        for phrase in ("Admission procedures", "Directors' obligations", "NSX Rules", "NSX describes nominated advisers"):
-            self.assertIn(phrase, text)
-
-    def test_no_guarantee_or_false_credential(self):
-        text = self.text()
-        self.assertIn("not a licence, certification or endorsement", text)
-        self.assertIn("does not promise that any issuer will be admitted", text)
-        for banned in ("licensed by", "regulated by", "accredited", "approved by nsx", "we guarantee", "successful listing", "ipo", "award"):
-            self.assertNotIn(banned, text.lower())
-
-    def test_external_links_marked_and_responsive_css(self):
-        sec = self.section()
-        for href in re.findall(r'<a [^>]*href="(https://[^"]+)"[^>]*>', sec):
-            self.assertIn('href="%s" rel="noopener"' % href, sec)
-        css = all_css()
-        self.assertRegex(css, r"\.nsx__grid\s*\{[^}]*grid-template-columns:\s*minmax\(0, 1fr\)")
-        self.assertRegex(css, r"min-width: 1024px\)\s*\{[^}]*\.nsx__grid\s*\{[^}]*5fr[^}]*7fr")
-        self.assertIn("overflow-wrap: anywhere", css)
+class HomepageSectionRemovalTests(unittest.TestCase):
+    def test_removed_section_has_no_remaining_hooks(self):
+        paths = list(ROOT.glob("*.html")) + [
+            ROOT / "assets/css/components.css",
+            ROOT / "assets/js/main.js",
+            ROOT / "docs/architecture.md",
+        ]
+        for path in paths:
+            content = path.read_text(encoding="utf-8")
+            for hook in ("nsx-title", "nsx__", 'class="section nsx"'):
+                self.assertNotIn(hook, content, str(path))
 
 
 class ApproachSectionTests(unittest.TestCase):
@@ -518,7 +483,7 @@ class ApproachSectionTests(unittest.TestCase):
         self.assertIn("prefers-reduced-motion", js)
         self.assertIn("IntersectionObserver", js)
         self.assertIn("setTimeout", js)
-        for sel in (".intro__item", ".services__panel", ".nsx__block", ".contact-cta__panel"):
+        for sel in (".intro__item", ".services__panel", ".contact-cta__panel"):
             self.assertIn(sel, js)
         # Reveal class is applied by JS only, never authored in markup.
         for page in ROOT.glob("*.html"):
@@ -826,6 +791,11 @@ class SecondaryPageTests(unittest.TestCase):
     def test_contact_accessible_and_truthful(self):
         html = self.read("contact.html")
         main = re.search(r"<main.*?</main>", html, re.S).group(0)
+        hero = re.search(r'<section[^>]*aria-labelledby="page-title".*?</section>', main, re.S).group(0)
+        self.assertIn("service-hero--support", hero)
+        self.assertIn('class="container service-hero__grid"', hero)
+        self.assertIn('class="service-hero__identity"', hero)
+        self.assertIn('src="assets/section-support.png" width="1349" height="1166" alt=""', hero)
         self.assertIn("These are the group contact details published in ACTP's official NSX adviser profile.", main)
         self.assertNotIn("no enquiry form yet", main.lower())
         self.assertIn('href="mailto:contact@arris.com.my"', main)

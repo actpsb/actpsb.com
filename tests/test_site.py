@@ -320,6 +320,22 @@ class NavTests(unittest.TestCase):
         self.assertRegex(css, r"\.site-header\s*\{[^}]*position:\s*sticky")
 
 
+def rendered_text(markup):
+    """Lower-cased visible text with tags removed and whitespace runs collapsed,
+    so assertions do not depend on how the HTML source is line-wrapped."""
+    return re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", markup)).strip().lower()
+
+
+class RenderedTextTests(unittest.TestCase):
+    def test_wrapped_source_matches_single_line_phrase(self):
+        wrapped = '<p>is listed by NSX as an International Nominated\n            Adviser.</p>'
+        self.assertIn("international nominated adviser", rendered_text(wrapped))
+        self.assertIn("nominated adviser", rendered_text("<b>Nominated</b>\n\t<i>Adviser</i>"))
+
+    def test_different_words_still_do_not_match(self):
+        self.assertNotIn("international nominated adviser", rendered_text("<p>International\n Adviser</p>"))
+
+
 class HeroTests(unittest.TestCase):
     def hero(self):
         html = (ROOT / "index.html").read_text(encoding="utf-8")
@@ -332,7 +348,7 @@ class HeroTests(unittest.TestCase):
         self.assertEqual(ctas, [("services.html", "Explore our services"), ("about.html", "About ACTP")])
 
     def test_copy_omits_source_links_and_removed_disclaimer(self):
-        text = re.sub(r"<[^>]+>", " ", self.hero()).lower()
+        text = rendered_text(self.hero())
         self.assertIn("listed by nsx as an international nominated adviser", text)
         lead = re.search(r'<p class="lead">.*?</p>', self.hero(), re.S).group(0)
         note = re.search(r'<p class="hero__note">.*?</p>', self.hero(), re.S).group(0)

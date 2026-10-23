@@ -352,6 +352,7 @@ class HeroTests(unittest.TestCase):
         self.assertIn("listed by nsx as an international nominated adviser", text)
         lead = re.search(r'<p class="lead">.*?</p>', self.hero(), re.S).group(0)
         note = re.search(r'<p class="hero__note">.*?</p>', self.hero(), re.S).group(0)
+        self.assertIn("ACTP Sdn Bhd (Company No: 202001008972)", lead)
         self.assertIn("listed by NSX", lead)
         self.assertNotIn("Source:", lead)
         self.assertIn("admission procedures", note)
@@ -729,6 +730,12 @@ class SecondaryPageTests(unittest.TestCase):
         self.assertEqual(main.count('<article class="about-credential">'), 3)
         self.assertEqual(main.count('<article class="about-expertise-card">'), 4)
         self.assertEqual(main.count('<article class="about-principle">'), 3)
+        introduction = re.search(r'<div class="about-editorial-copy">\s*<p>(.*?)</p>', main, re.S).group(1)
+        self.assertEqual(
+            " ".join(introduction.split()),
+            "ACTP is a wholly owned subsidiary of Arris Holdings Berhad that combines expertise in corporate strategy, "
+            "financial advisory, transaction support and business consulting.",
+        )
         self.assertIn("Recognised in September 2022", main)
         self.assertIn("https://www.nsx.com.au/ftp/news/021741291.PDF", main)
         self.assertIn("Source: NSX Adviser Profile", main)

@@ -27,8 +27,11 @@
     <div class="container">
       <nav class="site-nav" aria-label="Primary">
         <a class="logo-wrap" href="index.html" aria-label="ACTP home">
-          <img class="logo" src="assets/actp-logo-432.png" width="432" height="146" decoding="async"
-            fetchpriority="high" alt="ACTP logo: a teal stylised mountain-peak symbol beside the teal letters CTP">
+          <picture>
+            <source srcset="assets/actp-logo-432.webp" type="image/webp">
+            <img class="logo" src="assets/actp-logo-432.png" width="432" height="146" decoding="async"
+              alt="ACTP logo: a teal stylised mountain-peak symbol beside the teal letters CTP">
+          </picture>
         </a>
         <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-menu" hidden>
           <span class="nav-toggle__bars" aria-hidden="true"></span>
@@ -61,7 +64,12 @@
           </div>
         </div>
         <div class="service-hero__identity">
-          <img src="assets/section-strategy.png" width="1389" height="1132" alt="Corporate strategy" decoding="async">
+          <picture>
+            <source media="(max-width: 767px)" srcset="assets/section-strategy-640.webp" type="image/webp">
+            <source srcset="assets/section-strategy.webp" type="image/webp">
+            <img src="assets/section-strategy.png" width="1389" height="1132" alt="Corporate strategy" decoding="async"
+              fetchpriority="high">
+          </picture>
         </div>
       </div>
     </section>
@@ -197,7 +205,7 @@
                 through market announcements and public exposure.</dd>
               <dt>A market for shareholders</dt>
               <dd>Exchange trading provides a mechanism for investors to buy and sell shares and for market pricing.
-                Trading activity, liquidity and share value are not assured.</dd>
+              </dd>
             </dl>
             <a class="service-source" href="https://www.nsx.com.au/listing/why-list-with-us/" target="_blank"
               rel="noopener noreferrer">Explore NSX Listing Benefits <span aria-hidden="true">&#8599;</span></a>
@@ -211,10 +219,9 @@
                 application and admission process.</dd>
               <dt>An informed board</dt>
               <dd>An adviser explains the NSX Rules and guides directors on their responsibilities, helping the board
-                understand what is expected. Directors remain responsible for compliance.</dd>
+                understand what is expected.</dd>
               <dt>Support beyond admission</dt>
-              <dd>Continuing access to guidance helps issuers understand ongoing exchange obligations. Specialist
-                advice may also be needed for matters outside the nominated adviser's expertise.</dd>
+              <dd>Continuing access to guidance helps issuers understand ongoing exchange obligations.</dd>
             </dl>
             <a class="service-source" href="https://www.nsx.com.au/regulation/companies/nominated-adviser/"
               target="_blank" rel="noopener noreferrer">Read NSX's Nominated Adviser Guidance <span
@@ -259,8 +266,8 @@
         </ul>
       </nav>
       <div class="site-footer__contact">
-        <p class="site-footer__label">NSX-listed group contact</p>
-        <p><a href="mailto:contact@arris.com.my">contact@arris.com.my</a><br><a href="tel:+60380763063">+60 3 8076
+        <p class="site-footer__label">Contact ACTP</p>
+        <p><a href="mailto:contact@actpsb.com">contact@actpsb.com</a><br><a href="tel:+60380763063">+60 3 8076
             3063</a>
         </p>
       </div>

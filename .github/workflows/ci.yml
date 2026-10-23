@@ -10,7 +10,12 @@ permissions:
 
 jobs:
   test:
+    name: test (PHP ${{ matrix.php }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ["8.3", "8.5"]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -18,13 +23,16 @@ jobs:
           python-version: "3.x"
       - uses: shivammathur/setup-php@v2
         with:
-          php-version: "8.3"
-          extensions: openssl, mbstring
+          php-version: ${{ matrix.php }}
+          extensions: openssl, mbstring, ctype
           tools: composer:v2
       - name: Install backend dependencies (locked)
         run: composer install --working-dir=backend --no-interaction --no-progress --prefer-dist
+      - name: Check platform requirements
+        run: composer check-platform-reqs --working-dir=backend
       - name: PHP lint
         run: |
+          php -v
           for f in backend/src/*.php backend/config/*.php contact-submit.php; do php -l "$f"; done
       - name: Run tests
         run: python -m unittest discover -s tests -v
@@ -33,7 +41,7 @@ jobs:
       - name: Publish File Manager upload packages
         uses: actions/upload-artifact@v4
         with:
-          name: actpsb-cpanel-${{ github.sha }}
+          name: actpsb-cpanel-php${{ matrix.php }}-${{ github.sha }}
           path: |
             dist/actpsb-*.zip
             dist/MANIFEST.json

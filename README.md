@@ -184,7 +184,7 @@ Generated folders such as `backend/vendor/`, `dist/`, `__pycache__/` and `.pytes
 
 ## Preview Locally
 
-Run these commands from the folder containing this README. You need PHP 8.1 or newer with the OpenSSL and mbstring extensions, plus Composer for the email library.
+Run these commands from the folder containing this README. You need PHP 8.1 or newer with the ctype, OpenSSL and mbstring extensions (validated on 8.3 and 8.5), plus Composer for the email library.
 
 ```sh
 composer install --working-dir=backend --no-interaction --prefer-dist

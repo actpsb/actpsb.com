@@ -117,5 +117,33 @@ class TrackedFileHygieneTests(unittest.TestCase):
                     self.assertIn("noopener", tag, f"{page.name}: {tag[:80]}")
 
 
+class RequiredExtensionTests(unittest.TestCase):
+    """ext-ctype is a declared requirement and its absence fails closed without detail."""
+
+    def test_composer_declares_ctype_in_json_and_lock(self):
+        import json
+        j = json.loads((ROOT / "backend/composer.json").read_text(encoding="utf-8"))
+        lock = json.loads((ROOT / "backend/composer.lock").read_text(encoding="utf-8"))
+        self.assertEqual(j["require"]["ext-ctype"], "*")
+        self.assertEqual(lock["platform"]["ext-ctype"], "*")
+
+    def test_missing_ctype_fails_closed_without_leaking(self):
+        import os
+        import shutil
+        import tempfile
+        php = os.environ.get("ACTP_PHP") or shutil.which("php")
+        if not php:
+            self.skipTest("php unavailable")
+        with tempfile.TemporaryDirectory() as d:
+            env = {**os.environ, "HTTP_ACCEPT": "application/json", "ACTP_SMTP_PASS": "s3cret-value"}
+            r = subprocess.run([php, "-d", "disable_functions=ctype_digit", str(ROOT / "contact-submit.php")],
+                               capture_output=True, text=True, cwd=d, env=env, timeout=30)
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertIn('"status":"unavailable"', r.stdout)
+        for text in (r.stdout, r.stderr):
+            self.assertNotIn("ctype", text.lower())
+            self.assertNotIn("s3cret-value", text)
+
+
 if __name__ == "__main__":
     unittest.main()

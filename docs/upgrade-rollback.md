@@ -18,7 +18,7 @@ Verify a download before uploading: compare the SHA-256 of each ZIP with `SHA256
 
 - An existing working `/home/arriscom/actpsb-private/config.php` (real SMTP password, `allowed_origins`, `mail_to`). It is not touched by an upgrade. Open it in File Manager and confirm `allowed_origins` lists every origin visitors use, including both `https://actpsb.com` and `https://www.actpsb.com` if both serve the site.
 - `/home/arriscom/actpsb-private` is 0700 and `config.php` is 0600.
-- PHP 8.3 with `openssl` and `mbstring` (MultiPHP Manager / PHP extensions).
+- PHP 8.3 or 8.5 with `ctype`, `openssl` and `mbstring` (MultiPHP Manager / PHP extensions).
 - A confirmed way to see the contact form working afterwards (a mailbox you control).
 
 ## Fresh install (first time only)

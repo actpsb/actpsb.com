@@ -5,6 +5,7 @@
   "license": "proprietary",
   "require": {
     "php": ">=8.1",
+    "ext-ctype": "*",
     "ext-openssl": "*",
     "ext-mbstring": "*",
     "phpmailer/phpmailer": "6.12.0"

@@ -16,7 +16,9 @@ $private = getenv('ACTP_PRIVATE_DIR') ?: $home . '/actpsb-private';
 
 header_remove('X-Powered-By');
 $autoload = $backend . '/vendor/autoload.php';
-if (!is_file($autoload)) {
+// Fail closed (same unavailable response, no detail) when the backend or a required PHP extension is missing.
+$extensionsOk = function_exists('ctype_digit') && extension_loaded('mbstring') && extension_loaded('openssl');
+if (!$extensionsOk || !is_file($autoload)) {
     http_response_code(503);
     header('Cache-Control: no-store');
     header('X-Content-Type-Options: nosniff');

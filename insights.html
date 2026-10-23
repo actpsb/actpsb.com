@@ -27,11 +27,8 @@
     <div class="container">
       <nav class="site-nav" aria-label="Primary">
         <a class="logo-wrap" href="index.html" aria-label="ACTP home">
-          <picture>
-            <source srcset="assets/actp-logo-432.webp" type="image/webp">
-            <img class="logo" src="assets/actp-logo-432.png" width="432" height="146" decoding="async"
-              alt="ACTP logo: a teal stylised mountain-peak symbol beside the teal letters CTP">
-          </picture>
+          <img class="logo" src="assets/actp-logo-432.png" width="432" height="146" decoding="async"
+            fetchpriority="high" alt="ACTP logo: a teal stylised mountain-peak symbol beside the teal letters CTP">
         </a>
         <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-menu" hidden>
           <span class="nav-toggle__bars" aria-hidden="true"></span>
@@ -62,12 +59,7 @@
           </div>
         </div>
         <div class="service-hero__identity">
-          <picture>
-            <source media="(max-width: 767px)" srcset="assets/section-discover-640.webp" type="image/webp">
-            <source srcset="assets/section-discover.webp" type="image/webp">
-            <img src="assets/section-discover.png" width="1349" height="1166" alt="Business discovery" decoding="async"
-              fetchpriority="high">
-          </picture>
+          <img src="assets/section-discover.png" width="1349" height="1166" alt="Business discovery" decoding="async">
         </div>
       </div>
     </section>
@@ -82,41 +74,39 @@
         <div class="insights__cards">
           <article class="insights__card">
             <div class="insights__logo-panel">
-              <picture>
-                <source srcset="assets/images/nuren-group-logo.webp" type="image/webp">
-                <img class="insights__logo" src="assets/images/nuren-group-logo.png" width="2152" height="731"
-                  loading="lazy" decoding="async" alt="Nuren Group Limited">
-              </picture>
+              <img class="insights__logo" src="assets/images/nuren-group-logo.png" width="2152" height="731"
+                loading="lazy" decoding="async" alt="Nuren Group Limited">
             </div>
             <p class="insights__category">Listing Milestone / 2024</p>
             <h3 class="insights__company">Nuren Group Limited</h3>
             <p class="insights__description">Supporting a Malaysian digital platform's journey to the NSX, with ACTP
               serving as nominated adviser for its public market debut.</p>
             <div class="insights__milestone">
-              <p class="insights__milestone-label">ACTP's Role</p>
-              <time class="insights__date" datetime="2024-08-06">Listed on 6th August 2024</time>
+              <p class="insights__milestone-label">Quotation commenced</p>
+              <time class="insights__date" datetime="2024-08-06">6 August 2024</time>
+              <p class="insights__milestone-copy">Historical listing milestone. NSX records removal from its official
+                list on 30 June 2026.</p>
             </div>
             <a class="insights-page__source" href="https://www.nsx.com.au/marketdata/company-directory/NRN/"
               target="_blank" rel="noopener noreferrer">Nuren's NSX Record <span aria-hidden="true">&#8599;</span></a>
           </article>
           <article class="insights__card">
             <div class="insights__logo-panel">
-              <picture>
-                <source srcset="assets/images/arris-holding-logo.webp" type="image/webp">
-                <img class="insights__logo" src="assets/images/arris-holding-logo.png" width="1862" height="845"
-                  loading="lazy" decoding="async" alt="Arris Holdings Berhad">
-              </picture>
+              <img class="insights__logo" src="assets/images/arris-holding-logo.png" width="1862" height="845"
+                loading="lazy" decoding="async" alt="Arris Holdings Berhad">
             </div>
             <p class="insights__category">Nominated Adviser Appointment / 2022</p>
             <h3 class="insights__company">Arris Holdings Berhad</h3>
             <p class="insights__description">Providing nominated adviser support to the multidisciplinary professional
               services group. Arris announced ACTP's appointment following a change of adviser.</p>
             <div class="insights__milestone">
-              <p class="insights__milestone-label">ACTP's Role</p>
-              <time class="insights__date" datetime="2022-11-01">Appointed on 1st November 2022</time>
+              <p class="insights__milestone-label">Appointment announced</p>
+              <time class="insights__date" datetime="2022-11-01">1 November 2022</time>
+              <p class="insights__milestone-copy">An adviser appointment for an already-listed company, not its original
+                admission to the exchange.</p>
             </div>
-            <a class="insights-page__source" href="https://www.nsx.com.au/marketdata/company-directory/AR2/"
-              target="_blank" rel="noopener noreferrer">Arris' NSX Records <span aria-hidden="true">&#8599;</span></a>
+            <a class="insights-page__source" href="https://www.nsx.com.au/ftp/news/021741547.PDF" target="_blank"
+              rel="noopener noreferrer">Arris Appointment Announcement (PDF) <span aria-hidden="true">&#8599;</span></a>
           </article>
         </div>
       </div>
@@ -133,11 +123,8 @@
         <div class="insights__cards">
           <article class="insights__card">
             <div class="insights__logo-panel insights__logo-panel--dark">
-              <picture>
-                <source srcset="assets/images/actelerate-international-group-logo.webp" type="image/webp">
-                <img class="insights__logo" src="assets/images/actelerate-international-group-logo.png" width="2170"
-                  height="725" loading="lazy" decoding="async" alt="Actcelerate International Group Limited">
-              </picture>
+              <img class="insights__logo" src="assets/images/actelerate-international-group-logo.png" width="2170"
+                height="725" loading="lazy" decoding="async" alt="Actcelerate International Group Limited">
             </div>
             <p class="insights__category">Nominated Adviser</p>
             <h3 class="insights__company">Actcelerate International Group Limited</h3>
@@ -155,11 +142,8 @@
           </article>
           <article class="insights__card">
             <div class="insights__logo-panel insights__logo-panel--dark">
-              <picture>
-                <source srcset="assets/images/sydney-sunny-glass-logo.webp" type="image/webp">
-                <img class="insights__logo insights-page__logo--square" src="assets/images/sydney-sunny-glass-logo.png"
-                  width="1330" height="1183" loading="lazy" decoding="async" alt="Sydney Sunny Glass">
-              </picture>
+              <img class="insights__logo insights-page__logo--square" src="assets/images/sydney-sunny-glass-logo.png"
+                width="1330" height="1183" loading="lazy" decoding="async" alt="Sydney Sunny Glass">
             </div>
             <p class="insights__category">Nominated Adviser</p>
             <h3 class="insights__company">Sydney Sunny Glass</h3>
@@ -168,9 +152,9 @@
               with guidance on relevant exchange requirements and ongoing obligations.</p>
             <div class="insights__milestone">
               <p class="insights__milestone-label">ACTP's role</p>
-              <p class="insights-page__role">NSX Nominated Adviser</p>
+              <p class="insights-page__role">Historical NSX Nominated Adviser</p>
               <p class="insights__milestone-copy">ACTP's nominated adviser relationship relates to Australia Sunny
-                Glass Group Limited (NSX: AG1).</p>
+                Glass Group Limited (NSX: AG1). NSX records delisting on 18 December 2025.</p>
             </div>
             <a class="insights-page__source" href="https://www.nsx.com.au/marketdata/company-directory/AG1/"
               target="_blank" rel="noopener noreferrer">Sunny Glass's NSX Record <span
@@ -216,8 +200,8 @@
         </ul>
       </nav>
       <div class="site-footer__contact">
-        <p class="site-footer__label">Contact ACTP</p>
-        <p><a href="mailto:contact@actpsb.com">contact@actpsb.com</a><br><a href="tel:+60380763063">+60 3 8076
+        <p class="site-footer__label">NSX-listed group contact</p>
+        <p><a href="mailto:contact@arris.com.my">contact@arris.com.my</a><br><a href="tel:+60380763063">+60 3 8076
             3063</a>
         </p>
       </div>

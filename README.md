@@ -72,6 +72,23 @@ These are real project assets, not disposable code. Keep the original logo even 
 | [assets/images/sydney-sunny-glass-logo.png](assets/images/sydney-sunny-glass-logo.png) | Sydney Sunny Glass company logo on Insights. |
 | [assets/documents/nuren-group-nsx-admission.pdf](assets/documents/nuren-group-nsx-admission.pdf) | Supporting NSX admission letter retained as evidence for Nuren's milestone dates; not currently linked from a public page. |
 
+Pages prefer the compressed WebP files below and retain the PNGs as browser fallbacks and source artwork. Phone headers and smaller illustrations use the 640px versions. The public upload package includes these automatically. See [docs/qa/performance.md](docs/qa/performance.md) for measurements and regeneration commands.
+
+| Optimised asset | Purpose |
+| --- | --- |
+| [assets/actp-logo-432.webp](assets/actp-logo-432.webp) | Lossless navigation logo. |
+| [assets/hero-growth.webp](assets/hero-growth.webp), [assets/hero-growth-640.webp](assets/hero-growth-640.webp) | Desktop and phone Home header artwork. |
+| [assets/hero-teammwork-640.webp](assets/hero-teammwork-640.webp) | Home introduction artwork, sized for its smaller display. |
+| [assets/section-discover.webp](assets/section-discover.webp), [assets/section-discover-640.webp](assets/section-discover-640.webp) | Insights header and Home approach artwork. |
+| [assets/section-strategy.webp](assets/section-strategy.webp), [assets/section-strategy-640.webp](assets/section-strategy-640.webp) | Services header and Home approach artwork. |
+| [assets/section-execution-640.webp](assets/section-execution-640.webp) | Home approach artwork. |
+| [assets/section-support.webp](assets/section-support.webp), [assets/section-support-640.webp](assets/section-support-640.webp) | Contact header and Home approach artwork. |
+| [assets/images/actp-logo.webp](assets/images/actp-logo.webp) | About header logo, resized to 1280px wide. |
+| [assets/images/nuren-group-logo.webp](assets/images/nuren-group-logo.webp) | Nuren logo, resized to 640px wide. |
+| [assets/images/actelerate-international-group-logo.webp](assets/images/actelerate-international-group-logo.webp) | Actcelerate logo, resized to 640px wide. |
+| [assets/images/arris-holding-logo.webp](assets/images/arris-holding-logo.webp) | Arris logo, resized to 640px wide. |
+| [assets/images/sydney-sunny-glass-logo.webp](assets/images/sydney-sunny-glass-logo.webp) | Sydney Sunny Glass logo, resized to 640px wide. |
+
 ## Contact Form: Display Versus Sending
 
 Seeing the textboxes does not require mail settings. With JavaScript enabled, they appear immediately, including on a local preview. Without JavaScript, the page provides a link to the form rendered by PHP.

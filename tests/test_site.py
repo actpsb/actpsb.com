@@ -37,7 +37,7 @@ BANNED_TOOLING = [
     "package.json", "package-lock.json", "yarn.lock", "pnpm-lock.yaml",
     "webpack.config.js", "vite.config.js", "tailwind.config.js", "postcss.config.js",
 ]
-VOID = {"meta", "link", "img", "br", "hr", "input"}
+VOID = {"meta", "link", "img", "source", "br", "hr", "input"}
 
 
 class Page(HTMLParser):
@@ -158,6 +158,37 @@ class HomepageTests(unittest.TestCase):
                     t[1].get("id") == href[1:] for t in p.tags), href)
             elif not re.match(r"[a-z]+:", href):
                 self.assertTrue((ROOT / href).is_file(), href)
+
+
+class ImageOptimisationTests(unittest.TestCase):
+    def test_webp_sources_resolve_and_stay_within_budget(self):
+        for path in ROOT.glob("*.html"):
+            page = Page()
+            page.feed(path.read_text(encoding="utf-8"))
+            sources = page.find("source", type="image/webp")
+            self.assertTrue(sources, path.name)
+            candidates = {source["srcset"] for source in sources}
+            for candidate in candidates:
+                image = ROOT / candidate
+                data = image.read_bytes()
+                self.assertEqual(data[:4], b"RIFF", candidate)
+                self.assertEqual(data[8:12], b"WEBP", candidate)
+                self.assertLess(len(data), 400_000, candidate)
+            for image in page.find("img"):
+                source = Path(image["src"])
+                self.assertTrue(
+                    source.with_suffix(".webp").as_posix() in candidates
+                    or source.with_name(source.stem + "-640.webp").as_posix() in candidates,
+                    f"{path.name}: {source} has no optimised source",
+                )
+
+    def test_hero_has_priority_and_is_not_lazy_loaded(self):
+        for path in ROOT.glob("*.html"):
+            page = Page()
+            page.feed(path.read_text(encoding="utf-8"))
+            hero = page.find("img")[1]
+            self.assertEqual(hero.get("fetchpriority"), "high", path.name)
+            self.assertNotEqual(hero.get("loading"), "lazy", path.name)
 
 
 class StructureTests(unittest.TestCase):
@@ -587,8 +618,8 @@ class ContactFooterTests(unittest.TestCase):
             self.assertEqual(footer, reference_footer, name)
             nav = re.search(r'<nav class="site-footer__nav".*?</nav>', html, re.S).group(0)
             self.assertEqual(re.findall(r'href="([^"]+)"', nav), [p for p, _ in PAGES], name)
-            self.assertIn('<p class="site-footer__label">NSX-listed group contact</p>', html, name)
-            self.assertIn('href="mailto:contact@arris.com.my">contact@arris.com.my</a>', html, name)
+            self.assertIn('<p class="site-footer__label">Contact ACTP</p>', html, name)
+            self.assertIn('href="mailto:contact@actpsb.com">contact@actpsb.com</a>', html, name)
             self.assertNotIn("not confirmed as an ACTP-owned mailbox", html, name)
             tels = re.findall(r'href="(tel:[^"]*)"', html)
             self.assertTrue(tels, name)
@@ -737,8 +768,13 @@ class SecondaryPageTests(unittest.TestCase):
         self.assertEqual(main.count('<article class="service-benefit">'), 2)
         self.assertEqual(main.count("<dt>"), 6)
         self.assertIn('href="#capabilities"', main)
-        self.assertIn("Directors remain responsible for compliance", main)
-        self.assertIn("liquidity and share value are not assured", main)
+        descriptions = [" ".join(text.split()) for text in re.findall(r"<dd>(.*?)</dd>", main, re.S)]
+        for description in (
+            "An adviser explains the NSX Rules and guides directors on their responsibilities, helping the board understand what is expected.",
+            "Continuing access to guidance helps issuers understand ongoing exchange obligations.",
+            "Exchange trading provides a mechanism for investors to buy and sell shares and for market pricing.",
+        ):
+            self.assertIn(description, descriptions)
         for obsolete in ("Where to go next", "Not established as ACTP services", "pending confirmation by ACTP"):
             self.assertNotIn(obsolete, main)
         title = "NSX Nominated Adviser &amp; Corporate Advisory | ACTP Sdn Bhd"
@@ -771,13 +807,19 @@ class SecondaryPageTests(unittest.TestCase):
             self.assertRegex(card, r'<img[^>]+width="\d+"[^>]+height="\d+"')
             self.assertIn('class="insights-page__source"', card)
         self.assertIn('datetime="2024-08-06"', cards[0])
-        self.assertIn("30 June 2026", cards[0])
+        self.assertIn("Listed on 6th August 2024", cards[0])
+        self.assertNotIn('class="insights__milestone-copy"', cards[0])
         self.assertIn('datetime="2022-11-01"', cards[1])
-        self.assertIn("not its original", cards[1])
+        self.assertIn("Appointed on 1st November 2022", cards[1])
+        self.assertNotIn('class="insights__milestone-copy"', cards[1])
+        self.assertIn("Arris' NSX Records", cards[1])
+        self.assertIn('href="https://www.nsx.com.au/marketdata/company-directory/AR2/"', cards[1])
+        for card in cards[:2]:
+            self.assertIn('<p class="insights__milestone-label">ACTP\'s Role</p>', card)
         self.assertIn("predates ACTP's NSX recognition", cards[2])
-        self.assertIn("Historical NSX Nominated Adviser", cards[3])
+        self.assertIn('<p class="insights-page__role">NSX Nominated Adviser</p>', cards[3])
         self.assertIn("Glass Group Limited (NSX: AG1)", cards[3])
-        self.assertIn("18 December 2025", cards[3])
+        self.assertNotIn("NSX records delisting", cards[3])
         self.assertIn('href="https://www.nsx.com.au/marketdata/company-directory/AG1/"', cards[3])
         self.assertIn("service-hero--discover", main)
         self.assertIn('src="assets/section-discover.png" width="1349" height="1166"', main)
@@ -796,9 +838,9 @@ class SecondaryPageTests(unittest.TestCase):
         self.assertIn('class="container service-hero__grid"', hero)
         self.assertIn('class="service-hero__identity"', hero)
         self.assertIn('src="assets/section-support.png" width="1349" height="1166" alt=""', hero)
-        self.assertIn("These are the group contact details published in ACTP's official NSX adviser profile.", main)
+        self.assertIn("Phone and address details are published in ACTP's official NSX adviser profile.", main)
         self.assertNotIn("no enquiry form yet", main.lower())
-        self.assertIn('href="mailto:contact@arris.com.my"', main)
+        self.assertIn('href="mailto:contact@actpsb.com"', main)
         self.assertRegex(main, r'href="tel:\+[0-9]+"')
         self.assertIn(self.NSX, main)
         self.assertIn('<main id="main" class="contact-page" tabindex="-1">', html)

@@ -1,5 +1,56 @@
 # Performance testing and optimisation (ACTP-020)
 
+## Image optimisation: 23 October 2026
+
+The historical Lighthouse results below predate the current illustration-heavy pages and must not be quoted as current performance scores.
+
+The current pages previously referenced PNG artwork of roughly 1–1.4 MB each and company logos of roughly 0.7–1.2 MB each. Home's complete image payload was 10,024,973 bytes. Lazy loading deferred some downloads but did not reduce their size.
+
+Pages now use native `picture` sources with WebP preferred and the original PNG as fallback. Header illustrations select 640px-wide files below 768px viewport width; larger screens retain full-resolution artwork. Home's introduction and approach illustrations always use the smaller files. Company-card logos are 640px wide (twice their maximum 320px display width); the About logo is 1280px wide. The navigation logo uses lossless WebP. Original PNGs and intrinsic layout dimensions remain unchanged.
+
+The main header image on each page has `fetchpriority="high"` and is not lazy-loaded. Below-the-fold images retain lazy loading. No JavaScript image loader or new runtime dependency is needed.
+
+### Complete Image Payloads
+
+These are sums of selected image file sizes, including below-the-fold images, not initial transfer measurements or live-host speed scores. Decimal KB/MB are used here.
+
+| Page | Previous PNG bytes | WebP bytes at 375px | WebP bytes at 1440px |
+| --- | ---: | ---: | ---: |
+| Home | 10,024,973 | 591,002 | 782,368 |
+| About | 738,728 | 83,514 | 83,514 |
+| Services | 1,366,893 | 98,698 | 249,630 |
+| Insights | 5,299,306 | 276,010 | 445,008 |
+| Contact | 1,105,964 | 97,418 | 238,114 |
+
+Home's image payload decreases by 94.1% on phones and 92.2% on desktop. Browsers without WebP support still load the original PNG payloads.
+
+### Verification
+
+- All WebP files decoded successfully with Pillow, used only as a local verification tool.
+- 71 site, SEO and accessibility regression tests passed, including new source-file, 400 KB image-budget and header-priority checks.
+- Chromium at 375px and 1440px: all five pages rendered every image, selected WebP, selected the appropriate phone/desktop header source, had no horizontal overflow, and made no duplicate PNG image requests. Lazy images were explicitly activated for this verification only.
+- Server compression, cache policy, live-host latency, field Core Web Vitals and current Lighthouse scores remain unmeasured. The existing hosting recommendations at the end still apply; no hosting configuration was changed.
+
+### Regenerating Images
+
+Run from the site root with the WebP `cwebp` encoder installed locally. No encoder is needed on the web host. Commit and upload the generated assets alongside the HTML; the existing package builder includes the entire assets directory.
+
+```sh
+for name in hero-growth section-discover section-strategy section-support; do
+	cwebp -quiet -q 85 -m 6 -metadata none "assets/$name.png" -o "assets/$name.webp"
+done
+for name in hero-growth hero-teammwork section-discover section-strategy section-execution section-support; do
+	cwebp -quiet -q 85 -m 6 -metadata none -resize 640 0 "assets/$name.png" -o "assets/$name-640.webp"
+done
+for name in nuren-group-logo actelerate-international-group-logo arris-holding-logo sydney-sunny-glass-logo; do
+	cwebp -quiet -q 90 -m 6 -metadata none -resize 640 0 "assets/images/$name.png" -o "assets/images/$name.webp"
+done
+cwebp -quiet -q 90 -m 6 -metadata none -resize 1280 0 assets/images/actp-logo.png -o assets/images/actp-logo.webp
+cwebp -quiet -lossless -m 6 -metadata none assets/actp-logo-432.png -o assets/actp-logo-432.webp
+```
+
+## Historical Lighthouse Audit
+
 Base: `bb1f7d336ece703c2999aabb8401028c1c4bddd6` (origin/main at start). Pages: `index.html`, `about.html`, `services.html`, `nsx-adviser.html`, `insights.html`, `contact.html`.
 
 This is a lab measurement from one machine, not a production or field result and not a WCAG conformance claim.
